@@ -114,9 +114,8 @@ export async function DELETE(request) {
 
 export async function PUT(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
-    console.log(body);
     const { name, identity, level, gender } = body;
 
     await query("UPDATE member SET name = ?, identity = ?, level = ?, gender = ? WHERE id = ?", [

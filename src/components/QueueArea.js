@@ -11,12 +11,11 @@ export default function QueueArea() {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-full flex flex-col hover:shadow-md transition-shadow duration-300">
       {/* 區塊標題 */}
-      <div className="bg-blue-600 text-white p-4 flex items-center justify-between">
+      <div className="bg-gradient-to-r from-[#3e41e2] to-[#37cacf] text-white p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Users className="w-6 h-6" />
           <div>
             <h3 className="text-lg font-bold">排隊區</h3>
-            <p className="text-blue-100 text-xs">依序等候</p>
           </div>
         </div>
         <div className="bg-white/20 px-3 py-1 rounded-full">

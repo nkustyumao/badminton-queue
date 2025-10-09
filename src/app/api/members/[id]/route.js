@@ -12,7 +12,7 @@ import { NextResponse } from "next/server";
  */
 export async function PUT(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { name, identity, level, gender } = body;
 
@@ -73,7 +73,7 @@ export async function PUT(request, { params }) {
  */
 export async function DELETE(request, { params }) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // 檢查會員是否存在
     const members = await query("SELECT * FROM member WHERE id = ?", [id]);

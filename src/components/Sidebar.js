@@ -220,7 +220,7 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
               已選擇 {selectedMembers.length} 位隊員
             </p>
             <p className="text-orange-600 text-xs mt-1">
-              點擊場地以加入隊員
+              {selectedMembers.length > 0 && selectedMembers.length < 5 ? "點擊場地以加入隊員" : "超過4位隊員，請先移除隊員"}
             </p>
           </div>
         )}
