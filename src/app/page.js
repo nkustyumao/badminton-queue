@@ -6,20 +6,42 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Sidebar from "@/components/Sidebar";
 import GameArea from "@/components/GameArea";
 import WaitingArea from "@/components/WaitingArea";
 import QueueArea from "@/components/QueueArea";
 import { Menu, X } from "lucide-react";
 import { useMembers } from "@/hooks/useMembers";
+import { useCourts } from "@/hooks/useCourts";
 
 export default function Home() {
   // 手機版側邊欄開關狀態
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // 選取的隊員ID列表
+  const [selectedMembers, setSelectedMembers] = useState([]);
 
   // 使用 TanStack Query 獲取會員資料
   const { data: members = [], isLoading, isError, error } = useMembers();
+  // 使用 TanStack Query 獲取場地資料
+  const { data: courts = [] } = useCourts();
+
+  // 已在場地中的隊員ID列表
+  const courtsMembers = useMemo(() => {
+    return courts.flatMap((court) => court.members.map((member) => member.id));
+  }, [courts]);
+
+  // 切換隊員選取狀態
+  const handleToggleMember = (memberId) => {
+    setSelectedMembers((prev) =>
+      prev.includes(memberId) ? prev.filter((id) => id !== memberId) : [...prev, memberId]
+    );
+  };
+
+  // 清除選取
+  const handleClearSelection = () => {
+    setSelectedMembers([]);
+  };
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden relative">
@@ -48,17 +70,18 @@ export default function Home() {
         ${isSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
       `}
       >
-        <Sidebar members={members} onClose={() => setIsSidebarOpen(false)} />
+        <Sidebar
+          members={members}
+          onClose={() => setIsSidebarOpen(false)}
+          selectedMembers={selectedMembers}
+          onToggleMember={handleToggleMember}
+          courtsMembers={courtsMembers}
+        />
       </div>
 
       {/* 右側主要內容區 */}
       <div className="flex-1 overflow-auto custom-scrollbar bg-gray-100">
         <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-4 md:space-y-6">
-          {/* 系統標題 */}
-          <div className="text-center animate-fade-in-down">
-            <h1 className="text-2xl font-bold text-gray-800 tracking-tight">🏸 羽球排隊系統</h1>
-          </div>
-
           {/* 載入狀態 */}
           {isLoading && (
             <div className="text-center py-20">
@@ -82,18 +105,23 @@ export default function Home() {
           {!isLoading && !isError && (
             <div className="space-y-4 md:space-y-6">
               {/* 比賽區 */}
-              <div className="h-64 md:h-80 animate-slide-up" style={{ animationDelay: "0.1s" }}>
-                <GameArea />
-              </div>
 
               {/* 等待區和排隊區 - 手機垂直排列，桌面並排顯示 */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-                <div className="h-64 md:h-80 animate-slide-up" style={{ animationDelay: "0.2s" }}>
-                  <WaitingArea />
+                <div className="h-64 md:h-90 animate-slide-up" style={{ animationDelay: "0.1s" }}>
+                  <GameArea />
                 </div>
-                <div className="h-64 md:h-80 animate-slide-up" style={{ animationDelay: "0.3s" }}>
+                <div className="h-64 md:h-90 animate-slide-up" style={{ animationDelay: "0.2s" }}>
                   <QueueArea />
                 </div>
+              </div>
+              <div className="h-64 md:h-100 animate-slide-up" style={{ animationDelay: "0.3s" }}>
+                <WaitingArea
+                  members={members}
+                  selectedMembers={selectedMembers}
+                  onToggleMember={handleToggleMember}
+                  onClearSelection={handleClearSelection}
+                />
               </div>
             </div>
           )}

@@ -11,7 +11,7 @@ import { useState, useMemo } from "react";
 import { useCreateMember, useDeleteMember, useUpdateMember } from "@/hooks/useMembers";
 import Swal from "sweetalert2";
 
-export default function Sidebar({ members, onClose }) {
+export default function Sidebar({ members, onClose, selectedMembers = [], onToggleMember, courtsMembers = [] }) {
   const [hoveredId, setHoveredId] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
@@ -67,10 +67,12 @@ export default function Sidebar({ members, onClose }) {
   };
 
   /**
-   * 排序後的會員列表
+   * 排序後的會員列表（過濾掉已在場地中的隊員）
    */
   const sortedMembers = useMemo(() => {
-    const membersCopy = [...members];
+    const membersCopy = [...members].filter(member => 
+      !courtsMembers.includes(member.id)
+    );
 
     if (sortBy === "identity") {
       // 按身份排序：隊長 > 副隊長 > 會員 > 臨打
@@ -93,7 +95,7 @@ export default function Sidebar({ members, onClose }) {
     }
 
     return membersCopy;
-  }, [members, sortBy]);
+  }, [members, sortBy, courtsMembers]);
 
   /**
    * 處理表單提交
@@ -212,6 +214,16 @@ export default function Sidebar({ members, onClose }) {
 
       {/* 新增隊員按鈕和排序選項 */}
       <div className="p-3 border-b border-gray-200 bg-white space-y-2">
+        {selectedMembers.length > 0 && (
+          <div className="bg-orange-100 border-2 border-orange-400 rounded-lg p-2 text-center">
+            <p className="text-orange-800 font-semibold text-sm">
+              已選擇 {selectedMembers.length} 位隊員
+            </p>
+            <p className="text-orange-600 text-xs mt-1">
+              點擊場地以加入隊員
+            </p>
+          </div>
+        )}
         <button
           onClick={() => setShowAddForm(!showAddForm)}
           className="w-full bg-gradient-to-r from-[#667eea] to-[#764ba2] hover:from-[#764ba2] hover:to-[#667eea] text-white px-4 py-2.5 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all duration-300 shadow-md hover:shadow-lg active:scale-95 cursor-pointer"
@@ -377,18 +389,30 @@ export default function Sidebar({ members, onClose }) {
               const genderStyle = getGenderStyle(member.gender);
               const levelStyle = getLevelStyle(member.level);
               const isHovered = hoveredId === member.id;
+              const isSelected = selectedMembers.includes(member.id);
 
               return (
                 <div
                   key={member.id || index}
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('member', JSON.stringify(member));
+                  }}
                   onMouseEnter={() => setHoveredId(member.id)}
                   onMouseLeave={() => setHoveredId(null)}
-                  onClick={() => onClose && onClose()}
+                  onClick={(e) => {
+                    if (onToggleMember) {
+                      e.stopPropagation();
+                      onToggleMember(member.id);
+                    }
+                  }}
                   className={`
                     relative ${levelStyle.color}
                     rounded-lg shadow-sm active:shadow-md 
-                    transition-all duration-300 p-2 md:p-2.5 border
-                    ${isHovered ? "md:-translate-y-0.5" : "border-transparent"}
+                    transition-all duration-300 p-2 md:p-2.5 border-2
+                    ${isHovered ? "md:-translate-y-0.5" : ""}
+                    ${isSelected ? "border-orange-500 ring-2 ring-orange-300" : "border-transparent"}
                     cursor-pointer group
                     active:scale-95
                   `}
