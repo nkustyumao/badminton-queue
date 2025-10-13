@@ -81,7 +81,7 @@ export default function Home() {
 
       {/* 右側主要內容區 */}
       <div className="flex-1 overflow-auto custom-scrollbar bg-gray-100">
-        <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-4 md:space-y-6">
+        <div className="p-3 md:p-4 lg:p-6 max-w-[1920px] mx-auto">
           {/* 載入狀態 */}
           {isLoading && (
             <div className="text-center py-20">
@@ -103,19 +103,20 @@ export default function Home() {
 
           {/* 三個主要區塊 */}
           {!isLoading && !isError && (
-            <div className="space-y-4 md:space-y-6">
+            <div className="space-y-3 md:space-y-4 lg:space-y-6">
+              {/* 比賽區和排隊區 */}
+              {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 lg:gap-6"> */}
               {/* 比賽區 */}
-
-              {/* 等待區和排隊區 - 手機垂直排列，桌面並排顯示 */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-                <div className="h-64 md:h-90 animate-slide-up" style={{ animationDelay: "0.1s" }}>
-                  <GameArea />
-                </div>
-                <div className="h-64 md:h-90 animate-slide-up" style={{ animationDelay: "0.2s" }}>
-                  <QueueArea />
-                </div>
+              <div className=" animate-slide-up" style={{ animationDelay: "0.1s" }}>
+                <GameArea members={members} />
               </div>
-              <div className="h-64 md:h-100 animate-slide-up" style={{ animationDelay: "0.3s" }}>
+              {/* 排隊區 */}
+              <div className=" animate-slide-up" style={{ animationDelay: "0.2s" }}>
+                <QueueArea members={members} />
+              </div>
+              {/* </div> */}
+              {/* 等待區 */}
+              <div className=" animate-slide-up" style={{ animationDelay: "0.3s" }}>
                 <WaitingArea
                   members={members}
                   selectedMembers={selectedMembers}

@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-export function useCourts() {
+export function useCourts(status = null) {
   return useQuery({
-    queryKey: ["courts"],
+    queryKey: status ? ["courts", status] : ["courts"],
     queryFn: async () => {
-      const response = await fetch("/api/courts");
+      const url = status ? `/api/courts?status=${status}` : "/api/courts";
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error("獲取場地失敗");
       }
@@ -17,9 +18,13 @@ export function useCreateCourt() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async (status = 'waiting') => {
       const response = await fetch("/api/courts", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status }),
       });
       if (!response.ok) {
         throw new Error("創建場地失敗");
@@ -85,6 +90,30 @@ export function useRemoveMemberFromCourt() {
       });
       if (!response.ok) {
         throw new Error("移除隊員失敗");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["courts"] });
+    },
+  });
+}
+
+export function useUpdateCourtStatus() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ courtId, status }) => {
+      const response = await fetch(`/api/courts/${courtId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status }),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "更新場地狀態失敗");
       }
       return response.json();
     },

@@ -6,9 +6,10 @@
 
 "use client";
 
-import { Users, Award, User, UserPlus, X } from "lucide-react";
+import { Users, Award, User, UserPlus, X, Settings } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useCreateMember, useDeleteMember, useUpdateMember } from "@/hooks/useMembers";
+import { useSettings, useUpdateSetting } from "@/hooks/useSettings";
 import Swal from "sweetalert2";
 
 export default function Sidebar({ members, onClose, selectedMembers = [], onToggleMember, courtsMembers = [] }) {
@@ -16,6 +17,8 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [showLevelTable, setShowLevelTable] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [maxGameCourts, setMaxGameCourts] = useState(2);
   const [editFormData, setEditFormData] = useState({
     name: "",
     identity: "",
@@ -34,6 +37,15 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
   const createMemberMutation = useCreateMember();
   const deleteMemberMutation = useDeleteMember();
   const updateMemberMutation = useUpdateMember();
+  const { data: settings = {} } = useSettings();
+  const updateSettingMutation = useUpdateSetting();
+
+  // 當設定載入後更新本地狀態
+  useMemo(() => {
+    if (settings.max_game_courts) {
+      setMaxGameCourts(parseInt(settings.max_game_courts));
+    }
+  }, [settings]);
 
   /**
    * 根據性別返回對應的漸層色彩和 icon
@@ -70,9 +82,7 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
    * 排序後的會員列表（過濾掉已在場地中的隊員）
    */
   const sortedMembers = useMemo(() => {
-    const membersCopy = [...members].filter(member => 
-      !courtsMembers.includes(member.id)
-    );
+    const membersCopy = [...members].filter((member) => !courtsMembers.includes(member.id));
 
     if (sortBy === "identity") {
       // 按身份排序：隊長 > 副隊長 > 會員 > 臨打
@@ -172,28 +182,61 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
     setShowEditForm(false);
   };
 
+  // 處理設定更新
+  const handleSettingsSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await updateSettingMutation.mutateAsync({
+        setting_key: "max_game_courts",
+        setting_value: maxGameCourts.toString(),
+      });
+      Swal.fire({
+        text: "設定已更新",
+        icon: "success",
+        confirmButtonColor: "#3b82f6",
+        timer: 1500,
+      });
+      setShowSettingsModal(false);
+    } catch (error) {
+      Swal.fire({
+        text: "設定更新失敗",
+        icon: "error",
+        confirmButtonColor: "#3b82f6",
+      });
+    }
+  };
+
   return (
     <div className="w-screen md:w-80 max-w-full bg-gradient-to-b from-slate-50 to-white border-r border-gray-200 shadow-lg overflow-hidden flex flex-col h-full">
       {/* 側邊欄標題 */}
       <div className="relative bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white p-4 md:p-6 shadow-md flex-shrink-0">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <h2 className="text-xl md:text-2xl font-bold tracking-tight truncate">隊員列表</h2>
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse flex-shrink-0"></div>
+            <p className="text-blue-100 text-xs md:text-sm font-medium truncate">{members.length} 位隊員</p>
+          </div>
+        </div>
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
             <div className="bg-white/20 p-2 md:p-3 rounded-xl backdrop-blur-sm flex-shrink-0">
-              <Users className="w-5 h-5 md:w-7 md:h-7" />
+              <Users className="w-5 h-5 md:w-6 md:h-6" />
             </div>
-            <div className="min-w-0 flex-1">
-              <h2 className="text-xl md:text-2xl font-bold tracking-tight truncate">隊員列表</h2>
-              <div className="flex items-center gap-2 mt-1 md:mt-1.5">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse flex-shrink-0"></div>
-                <p className="text-blue-100 text-xs md:text-sm font-medium truncate">{members.length} 位隊員</p>
-              </div>
-            </div>
+
             <div
               className="bg-white/20 p-2 md:p-3 rounded-xl backdrop-blur-sm flex-shrink-0 cursor-pointer"
               onClick={() => setShowLevelTable(true)}
             >
               {/* <Users className="w-5 h-5 md:w-7 md:h-7" /> */}
               程度表
+            </div>
+            <div
+              className="bg-white/20 p-2 md:p-3 rounded-xl backdrop-blur-sm flex-shrink-0 cursor-pointer hover:bg-white/30 transition-colors"
+              onClick={() => setShowSettingsModal(true)}
+              title="系統設定"
+            >
+              {/* <Settings className="w-4 h-4 md:w-5 md:h-5" /> */}
+              設定場地數量
             </div>
           </div>
 
@@ -216,11 +259,11 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
       <div className="p-3 border-b border-gray-200 bg-white space-y-2">
         {selectedMembers.length > 0 && (
           <div className="bg-orange-100 border-2 border-orange-400 rounded-lg p-2 text-center">
-            <p className="text-orange-800 font-semibold text-sm">
-              已選擇 {selectedMembers.length} 位隊員
-            </p>
+            <p className="text-orange-800 font-semibold text-sm">已選擇 {selectedMembers.length} 位隊員</p>
             <p className="text-orange-600 text-xs mt-1">
-              {selectedMembers.length > 0 && selectedMembers.length < 5 ? "點擊場地以加入隊員" : "超過4位隊員，請先移除隊員"}
+              {selectedMembers.length > 0 && selectedMembers.length < 5
+                ? "點擊場地以加入隊員"
+                : "超過4位隊員，請先移除隊員"}
             </p>
           </div>
         )}
@@ -291,7 +334,7 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
                     <option value="">請選擇身份</option>
                     <option value="會員">會員</option>
                     {/* <option value="隊長">隊長</option> */}
-                    <option value="隊長">臨打</option>
+                    <option value="臨打">臨打</option>
                   </select>
                 </div>
 
@@ -396,8 +439,8 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
                   key={member.id || index}
                   draggable
                   onDragStart={(e) => {
-                    e.dataTransfer.effectAllowed = 'move';
-                    e.dataTransfer.setData('member', JSON.stringify(member));
+                    e.dataTransfer.effectAllowed = "move";
+                    e.dataTransfer.setData("member", JSON.stringify(member));
                   }}
                   onMouseEnter={() => setHoveredId(member.id)}
                   onMouseLeave={() => setHoveredId(null)}
@@ -699,6 +742,67 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
               <X size={20} />
             </button>
             <img src="/level-table.webp" alt="程度表" className="w-full h-full" />
+          </div>
+        </div>
+      )}
+
+      {/* 系統設定彈窗 */}
+      {showSettingsModal && (
+        <div className="w-screen h-screen fixed top-0 left-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50 animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl w-[90%] max-w-md p-6 border border-gray-200 relative">
+            <button
+              type="button"
+              onClick={() => setShowSettingsModal(false)}
+              className="cursor-pointer absolute top-3 right-3 text-gray-500 hover:text-gray-800 transition"
+            >
+              <X size={24} />
+            </button>
+
+            <div className="mb-6">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-gradient-to-r from-[#667eea] to-[#764ba2] p-2 rounded-lg">
+                  <Settings className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800">系統設定</h3>
+              </div>
+              <p className="text-gray-500 text-sm">調整系統運作參數</p>
+            </div>
+
+            <form onSubmit={handleSettingsSubmit} className="space-y-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">比賽區最大場地數量</label>
+                <p className="text-xs text-gray-500 mb-3">設定比賽區最多可以同時容納多少塊場地</p>
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={maxGameCourts}
+                  onChange={(e) => setMaxGameCourts(parseInt(e.target.value) || 1)}
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-lg font-semibold text-center focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition"
+                  required
+                />
+                <p className="text-xs text-gray-400 mt-2">
+                  目前設定：<span className="font-bold text-blue-600">{maxGameCourts}</span> 塊場地
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowSettingsModal(false)}
+                  className="flex-1 px-4 py-3 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
+                >
+                  取消
+                </button>
+                <button
+                  type="submit"
+                  disabled={updateSettingMutation.isPending}
+                  className="flex-1 px-4 py-3 text-sm font-semibold text-white bg-gradient-to-r from-[#667eea] to-[#764ba2] rounded-lg hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {updateSettingMutation.isPending ? "儲存中..." : "儲存設定"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

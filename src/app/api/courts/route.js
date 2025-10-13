@@ -1,9 +1,22 @@
 import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(request) {
   try {
-    const courts = await query("SELECT * FROM courts ORDER BY created_at DESC");
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get("status");
+    
+    let sql = "SELECT * FROM courts";
+    let params = [];
+    
+    if (status && ['waiting', 'game', 'queue'].includes(status)) {
+      sql += " WHERE status = ?";
+      params.push(status);
+    }
+    
+    sql += " ORDER BY created_at ASC";
+    
+    const courts = await query(sql, params);
     
     const courtsWithMembers = await Promise.all(
       courts.map(async (court) => {
@@ -28,9 +41,22 @@ export async function GET() {
   }
 }
 
-export async function POST() {
+export async function POST(request) {
   try {
-    const result = await query("INSERT INTO courts () VALUES ()");
+    const body = await request.json().catch(() => ({}));
+    const status = body.status || 'waiting';
+    
+    if (!['waiting', 'game', 'queue'].includes(status)) {
+      return NextResponse.json(
+        { error: "無效的場地狀態" },
+        { status: 400 }
+      );
+    }
+    
+    const result = await query(
+      "INSERT INTO courts (status) VALUES (?)",
+      [status]
+    );
     const newCourt = await query("SELECT * FROM courts WHERE id = ?", [result.insertId]);
     
     return NextResponse.json({ ...newCourt[0], members: [] }, { status: 201 });

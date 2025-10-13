@@ -28,6 +28,42 @@ CREATE TABLE member (
 );
 ```
 
+### courts 資料表
+
+```sql
+CREATE TABLE courts (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  status ENUM('waiting', 'game', 'queue') DEFAULT 'waiting' COMMENT '場地狀態',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
+### court_members 資料表（關聯表）
+
+```sql
+CREATE TABLE court_members (
+  court_id INT NOT NULL,
+  member_id INT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (court_id, member_id),
+  FOREIGN KEY (court_id) REFERENCES courts(id) ON DELETE CASCADE,
+  FOREIGN KEY (member_id) REFERENCES member(id) ON DELETE CASCADE
+);
+```
+
+### settings 資料表
+
+```sql
+CREATE TABLE settings (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  setting_key VARCHAR(50) UNIQUE NOT NULL COMMENT '設定鍵名',
+  setting_value VARCHAR(255) NOT NULL COMMENT '設定值',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+```
+
 ### 範例資料
 
 ```sql
@@ -37,6 +73,17 @@ INSERT INTO member (name, identity, level, gender) VALUES
 ('王五', '會員', 6, '女'),
 ('趙六', '會員', 4, '男'),
 ('陳七', '會員', 7, '女');
+
+INSERT INTO settings (setting_key, setting_value) 
+VALUES ('max_game_courts', '2');
+```
+
+## 資料庫更新
+
+如果您已經有舊的資料庫，請執行 `database_update.sql` 檔案來更新資料庫結構：
+
+```bash
+mysql -u your_username -p badminton_db < database_update.sql
 ```
 
 ## 注意事項
