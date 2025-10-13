@@ -123,3 +123,23 @@ export function useUpdateCourtStatus() {
   });
 }
 
+export function useClearAllCourts() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/courts/clear", {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "清除場地資料失敗");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["courts"] });
+    },
+  });
+}
+

@@ -5,7 +5,7 @@
 
 "use client";
 
-import { Clock, Plus, Trash2, Users, Star } from "lucide-react";
+import { Clock, Plus, Trash2, Users, Star, Check } from "lucide-react";
 import { TiDelete } from "react-icons/ti";
 import {
   useCourts,
@@ -18,10 +18,11 @@ import {
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { useSettings } from "@/hooks/useSettings";
+import dayjs from "dayjs";
 
 export default function WaitingArea({ members = [], selectedMembers = [], onToggleMember, onClearSelection }) {
-  const { data: courts = [], isLoading } = useCourts('waiting');
-  const { data: gameCourts = [] } = useCourts('game');
+  const { data: courts = [], isLoading } = useCourts("waiting");
+  const { data: gameCourts = [] } = useCourts("game");
   const { data: settings = {} } = useSettings();
   const createCourtMutation = useCreateCourt();
   const deleteCourtMutation = useDeleteCourt();
@@ -36,7 +37,7 @@ export default function WaitingArea({ members = [], selectedMembers = [], onTogg
 
   const handleCreateCourt = async () => {
     try {
-      await createCourtMutation.mutateAsync('waiting');
+      await createCourtMutation.mutateAsync("waiting");
     } catch (error) {
       Swal.fire({
         text: "創建場地失敗",
@@ -50,12 +51,12 @@ export default function WaitingArea({ members = [], selectedMembers = [], onTogg
     try {
       const maxGameCourts = parseInt(settings.max_game_courts || 2);
       const currentGameCourts = gameCourts.length;
-      
+
       if (currentGameCourts < maxGameCourts) {
         // 比賽區未滿，移至比賽區
         await updateCourtStatusMutation.mutateAsync({
           courtId: court.id,
-          status: 'game',
+          status: "game",
         });
         Swal.fire({
           text: "已加入比賽區",
@@ -67,7 +68,7 @@ export default function WaitingArea({ members = [], selectedMembers = [], onTogg
         // 比賽區已滿，移至排隊區
         await updateCourtStatusMutation.mutateAsync({
           courtId: court.id,
-          status: 'queue',
+          status: "queue",
         });
         Swal.fire({
           text: "比賽區已滿，已加入排隊區",
@@ -259,13 +260,13 @@ export default function WaitingArea({ members = [], selectedMembers = [], onTogg
           </div>
         </div>
         <div className="flex items-center gap-2 md:gap-3">
-          <div className="bg-white/20 px-2 md:px-3 py-0.5 md:py-1 rounded-full">
+          {/* <div className="bg-white/20 px-2 md:px-3 py-0.5 md:py-1 rounded-full">
             <span className="text-xs md:text-sm font-bold">{courts.length} 場</span>
-          </div>
+          </div> */}
           <button
             onClick={handleCreateCourt}
             disabled={createCourtMutation.isPending}
-            className="bg-white/20 hover:bg-white/30 p-1.5 md:p-2 rounded-full transition-colors disabled:opacity-50"
+            className="bg-white/20 hover:bg-white/50 p-1.5 md:p-2 rounded-full transition-colors disabled:opacity-50 cursor-pointer"
             title="新增場地"
           >
             <Plus className="w-4 h-4 md:w-5 md:h-5" />
@@ -288,7 +289,7 @@ export default function WaitingArea({ members = [], selectedMembers = [], onTogg
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
             {courts.map((court) => {
               const totalLevel = calculateTotalLevel(court.members);
               const isDragOver = dragOverCourt === court.id;
@@ -314,7 +315,7 @@ export default function WaitingArea({ members = [], selectedMembers = [], onTogg
                       e.stopPropagation();
                       handleDeleteCourt(court.id);
                     }}
-                    className="absolute top-2 right-2 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+                    className="absolute top-2 right-2 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors cursor-pointer"
                     title="刪除場地"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -325,7 +326,7 @@ export default function WaitingArea({ members = [], selectedMembers = [], onTogg
                     <div className="flex items-center justify-between">
                       <h4 className="font-bold text-sm md:text-base text-gray-800 flex items-center gap-1.5 md:gap-2">
                         <Users className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                        場地 {court.id}
+                        {dayjs(Date.now()).format("YYYY-MM-DD")} 第 {court.id} 場
                       </h4>
                     </div>
                     <div className="flex items-center gap-1.5 md:gap-2 mt-0.5 md:mt-1">
@@ -336,17 +337,17 @@ export default function WaitingArea({ members = [], selectedMembers = [], onTogg
                     </div>
                   </div>
 
-                  {/* 開始比賽按鈕 */}
+                  {/* 準備好了按鈕 */}
                   {court.members.length === 4 && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleStartGame(court);
                       }}
-                      className="w-full mb-2 md:mb-3 py-1.5 md:py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-sm md:text-base font-bold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-1.5 md:gap-2"
+                      className="w-full mb-2 md:mb-3 py-1.5 md:py-2 bg-gradient-to-r from-green-600 to-emerald-400 hover:from-green-600 hover:to-emerald-700 text-white text-sm md:text-base font-bold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-1.5 md:gap-2 cursor-pointer"
                     >
-                      <Star className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                      開始比賽
+                      <Check className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                      準備好了
                     </button>
                   )}
 
@@ -367,7 +368,9 @@ export default function WaitingArea({ members = [], selectedMembers = [], onTogg
                             >
                               {member.gender === "男" ? "♂" : "♀"}
                             </div>
-                            <span className="font-semibold text-gray-800 text-xs md:text-sm truncate">{member.name}</span>
+                            <span className="font-semibold text-gray-800 text-xs md:text-sm truncate">
+                              {member.name}
+                            </span>
                             <span className="text-xs text-gray-600 flex-shrink-0">Lv.{member.level}</span>
                           </div>
                           <button
@@ -375,7 +378,7 @@ export default function WaitingArea({ members = [], selectedMembers = [], onTogg
                               e.stopPropagation();
                               handleRemoveMember(court.id, member.id);
                             }}
-                            className="text-red-500 hover:text-red-700 transition-colors flex-shrink-0 ml-1"
+                            className="text-red-500 hover:text-red-700 transition-colors flex-shrink-0 ml-1 cursor-pointer"
                             title="移除隊員"
                           >
                             <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />

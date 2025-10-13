@@ -17,6 +17,7 @@ import {
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { useSettings } from "@/hooks/useSettings";
+import dayjs from "dayjs";
 
 export default function GameArea({ members = [] }) {
   const { data: courts = [], isLoading } = useCourts("game");
@@ -276,7 +277,7 @@ export default function GameArea({ members = [] }) {
                     <div className="flex items-center justify-between">
                       <h4 className="font-bold text-sm md:text-base text-gray-800 flex items-center gap-1.5 md:gap-2">
                         <Users className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                        場地 {court.id}
+                        {dayjs(Date.now()).format("MM/DD")} 第 {court.id} 場
                       </h4>
                     </div>
                     <div className="flex items-center gap-1.5 md:gap-2 mt-0.5 md:mt-1">

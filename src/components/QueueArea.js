@@ -18,10 +18,11 @@ import {
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { useSettings } from "@/hooks/useSettings";
+import dayjs from "dayjs";
 
 export default function QueueArea({ members = [] }) {
-  const { data: courts = [], isLoading } = useCourts('queue');
-  const { data: gameCourts = [] } = useCourts('game');
+  const { data: courts = [], isLoading } = useCourts("queue");
+  const { data: gameCourts = [] } = useCourts("game");
   const { data: settings = {} } = useSettings();
   const createCourtMutation = useCreateCourt();
   const deleteCourtMutation = useDeleteCourt();
@@ -39,7 +40,7 @@ export default function QueueArea({ members = [] }) {
 
   const handleCreateCourt = async () => {
     try {
-      await createCourtMutation.mutateAsync('queue');
+      await createCourtMutation.mutateAsync("queue");
     } catch (error) {
       Swal.fire({
         text: "創建場地失敗",
@@ -83,17 +84,17 @@ export default function QueueArea({ members = [] }) {
     try {
       await updateCourtStatusMutation.mutateAsync({
         courtId: court.id,
-        status: 'game',
+        status: "game",
       });
       Swal.fire({
-        text: "已移至比賽區",
+        text: "熱血開打",
         icon: "success",
         confirmButtonColor: "#3b82f6",
         timer: 1500,
       });
     } catch (error) {
       Swal.fire({
-        text: "移動失敗",
+        text: "發生錯誤請重新整理",
         icon: "error",
         confirmButtonColor: "#3b82f6",
       });
@@ -221,12 +222,12 @@ export default function QueueArea({ members = [] }) {
         <div className="flex items-center gap-2 md:gap-3">
           <Users className="w-5 h-5 md:w-6 md:h-6" />
           <div>
-            <h3 className="text-base md:text-lg font-bold">排隊區</h3>
+            <h3 className="text-base md:text-lg font-bold">排隊區 (先後順序由左至右依序排隊)</h3>
           </div>
         </div>
         <div className="flex items-center gap-2 md:gap-3">
           <div className="bg-white/20 px-2 md:px-3 py-0.5 md:py-1 rounded-full">
-            <span className="text-xs md:text-sm font-bold">{courts.length} 組</span>
+            <span className="text-xs md:text-sm font-bold">{courts.length} 場排隊中</span>
           </div>
           {/* <button
             onClick={handleCreateCourt}
@@ -238,7 +239,7 @@ export default function QueueArea({ members = [] }) {
           </button> */}
         </div>
       </div>
-      
+
       {/* 內容區域 */}
       <div className="flex-1 p-3 md:p-4 overflow-y-auto bg-gradient-to-br from-blue-50 to-white custom-scrollbar">
         {isLoading ? (
@@ -247,7 +248,7 @@ export default function QueueArea({ members = [] }) {
           </div>
         ) : courts.length === 0 ? (
           <div className="flex items-center justify-center h-full min-h-[200px]">
-        <div className="text-center">
+            <div className="text-center">
               <Users className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 md:mb-4 text-blue-600 opacity-50" />
               <p className="text-gray-600 font-medium text-sm md:text-base">尚無排隊</p>
               {/* <p className="text-gray-400 text-xs md:text-sm mt-1 md:mt-2">點擊右上角 + 號新增場地</p> */}
@@ -255,118 +256,122 @@ export default function QueueArea({ members = [] }) {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 md:gap-4">
-            {courts.map((court) => {
-              const totalLevel = calculateTotalLevel(court.members);
-              const isDragOver = dragOverCourt === court.id;
+            {courts
+              .sort((a, b) => new Date(a.updated_at) - new Date(b.updated_at))
+              .map((court) => {
+                const totalLevel = calculateTotalLevel(court.members);
+                const isDragOver = dragOverCourt === court.id;
 
-              return (
-                <div
-                  key={court.id}
-                  onDragOver={(e) => handleDragOver(e, court.id)}
-                  onDragLeave={handleDragLeave}
-                  onDrop={(e) => handleDrop(e, court)}
-                  className={`
+                return (
+                  <div
+                    key={court.id}
+                    onDragOver={(e) => handleDragOver(e, court.id)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, court)}
+                    className={`
                     relative bg-gradient-to-br from-white to-blue-50 rounded-lg md:rounded-xl border-2 p-3 md:p-4
                     transition-all duration-300 shadow-sm hover:shadow-md
                     ${isDragOver ? "border-blue-600 bg-blue-100 scale-105" : "border-blue-300"}
                   `}
-                >
-                  {/* 刪除按鈕 */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteCourt(court.id);
-                    }}
-                    className="absolute top-2 right-2 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
-                    title="刪除場地"
                   >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-
-                  {/* 場地標題和總程度 */}
-                  <div className="mb-2 md:mb-3 pr-8">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-sm md:text-base text-gray-800 flex items-center gap-1.5 md:gap-2">
-                        <Users className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                        場地 {court.id}
-                      </h4>
-                    </div>
-                    <div className="flex items-center gap-1.5 md:gap-2 mt-0.5 md:mt-1">
-                      <span className="text-xs md:text-sm font-semibold text-clip text-transparent bg-clip-text bg-gradient-to-r from-[#3e41e2] to-[#37cacf]">
-                        總程度: {totalLevel}
-                      </span>
-                      <span className="text-xs md:text-sm text-gray-500">( {court.members.length} / 4 )</span>
-                    </div>
-                  </div>
-
-                  {/* 移至比賽區按鈕 */}
-                  {canMoveToGame && (
+                    {/* 刪除按鈕 */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleMoveToGame(court);
+                        handleDeleteCourt(court.id);
                       }}
-                      className="w-full mb-2 md:mb-3 py-1.5 md:py-2 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white text-sm md:text-base font-bold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-1.5 md:gap-2"
+                      className="absolute top-2 right-2 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors cursor-pointer"
+                      title="刪除場地"
                     >
-                      <ArrowRight className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                      移至比賽區
+                      <Trash2 className="w-4 h-4" />
                     </button>
-                  )}
 
-                  {/* 隊員列表 */}
-                  <div className="space-y-1.5 md:space-y-2">
-                    {court.members.map((member) => {
-                      const levelStyle = getLevelStyle(member.level);
-                      return (
-                        <div
-                          key={member.id}
-                          className={`${levelStyle.color} rounded-md md:rounded-lg p-1.5 md:p-2 flex items-center justify-between border border-gray-200`}
-                        >
-                          <div className="flex items-center gap-1.5 md:gap-2 min-w-0 flex-1">
-                            <div
-                              className={`w-5 h-5 md:w-6 md:h-6 rounded-full flex-shrink-0 ${
-                                member.gender === "男" ? "bg-blue-500" : "bg-pink-500"
-                              } flex items-center justify-center text-white text-xs font-bold`}
-                            >
-                              {member.gender === "男" ? "♂" : "♀"}
-                            </div>
-                            <span className="font-semibold text-gray-800 text-xs md:text-sm truncate">{member.name}</span>
-                            <span className="text-xs text-gray-600 flex-shrink-0">Lv.{member.level}</span>
-                          </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemoveMember(court.id, member.id);
-                            }}
-                            className="text-red-500 hover:text-red-700 transition-colors flex-shrink-0 ml-1"
-                            title="移除隊員"
-                          >
-                            <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                          </button>
-                        </div>
-                      );
-                    })}
+                    {/* 場地標題和總程度 */}
+                    <div className="mb-2 md:mb-3 pr-8">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-bold text-sm md:text-base text-gray-800 flex items-center gap-1.5 md:gap-2">
+                          <Users className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                          {dayjs(Date.now()).format("YYYY-MM-DD")} 第 {court.id} 場
+                        </h4>
+                      </div>
+                      <div className="flex items-center gap-1.5 md:gap-2 mt-0.5 md:mt-1">
+                        <span className="text-xs md:text-sm font-semibold text-clip text-transparent bg-clip-text bg-gradient-to-r from-[#3e41e2] to-[#37cacf]">
+                          總程度: {totalLevel}
+                        </span>
+                        <span className="text-xs md:text-sm text-gray-500">( {court.members.length} / 4 )</span>
+                      </div>
+                    </div>
 
-                    {/* 空位提示 */}
-                    {Array.from({ length: 4 - court.members.length }).map((_, index) => (
-                      <div
-                        key={`empty-${index}`}
+                    {/* 移至比賽區按鈕 */}
+                    {canMoveToGame && (
+                      <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleOpenModal(court);
+                          handleMoveToGame(court);
                         }}
-                        className="border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 rounded-md md:rounded-lg p-1.5 md:p-2 text-center text-gray-400 hover:text-blue-600 text-xs md:text-sm cursor-pointer transition-all duration-200 lg:pointer-events-none lg:opacity-50"
+                        className="w-full mb-2 md:mb-3 py-1.5 md:py-2 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white text-sm md:text-base font-bold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-1.5 md:gap-2 cursor-pointer"
                       >
-                        <span className="text-xs lg:hidden">
-                          <Plus className="w-3 h-3 md:w-4 md:h-4 inline-block mr-1" /> 點擊加入
-                        </span>
-                        <span className="text-xs">空位</span>
-                      </div>
-                    ))}
+                        <ArrowRight className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                        點擊開賽
+                      </button>
+                    )}
+
+                    {/* 隊員列表 */}
+                    <div className="space-y-1.5 md:space-y-2">
+                      {court.members.map((member) => {
+                        const levelStyle = getLevelStyle(member.level);
+                        return (
+                          <div
+                            key={member.id}
+                            className={`${levelStyle.color} rounded-md md:rounded-lg p-1.5 md:p-2 flex items-center justify-between border border-gray-200`}
+                          >
+                            <div className="flex items-center gap-1.5 md:gap-2 min-w-0 flex-1">
+                              <div
+                                className={`w-5 h-5 md:w-6 md:h-6 rounded-full flex-shrink-0 ${
+                                  member.gender === "男" ? "bg-blue-500" : "bg-pink-500"
+                                } flex items-center justify-center text-white text-xs font-bold`}
+                              >
+                                {member.gender === "男" ? "♂" : "♀"}
+                              </div>
+                              <span className="font-semibold text-gray-800 text-xs md:text-sm truncate">
+                                {member.name}
+                              </span>
+                              <span className="text-xs text-gray-600 flex-shrink-0">Lv.{member.level}</span>
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveMember(court.id, member.id);
+                              }}
+                              className="text-red-500 hover:text-red-700 transition-colors flex-shrink-0 ml-1"
+                              title="移除隊員"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                            </button>
+                          </div>
+                        );
+                      })}
+
+                      {/* 空位提示 */}
+                      {Array.from({ length: 4 - court.members.length }).map((_, index) => (
+                        <div
+                          key={`empty-${index}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenModal(court);
+                          }}
+                          className="border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 rounded-md md:rounded-lg p-1.5 md:p-2 text-center text-gray-400 hover:text-blue-600 text-xs md:text-sm cursor-pointer transition-all duration-200 lg:pointer-events-none lg:opacity-50"
+                        >
+                          <span className="text-xs lg:hidden">
+                            <Plus className="w-3 h-3 md:w-4 md:h-4 inline-block mr-1" /> 點擊加入
+                          </span>
+                          <span className="text-xs">空位</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
         )}
       </div>
@@ -469,8 +474,8 @@ export default function QueueArea({ members = [] }) {
               >
                 加入 {modalSelectedMembers.length > 0 && `(${modalSelectedMembers.length})`}
               </button>
-        </div>
-      </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -492,4 +497,3 @@ export default function QueueArea({ members = [] }) {
     </div>
   );
 }
-

@@ -20,7 +20,6 @@ export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   // 選取的隊員ID列表
   const [selectedMembers, setSelectedMembers] = useState([]);
-
   // 使用 TanStack Query 獲取會員資料
   const { data: members = [], isLoading, isError, error } = useMembers();
   // 使用 TanStack Query 獲取場地資料

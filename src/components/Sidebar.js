@@ -6,10 +6,11 @@
 
 "use client";
 
-import { Users, Award, User, UserPlus, X, Settings } from "lucide-react";
+import { Users, Award, User, UserPlus, X, Settings, RotateCcw } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useCreateMember, useDeleteMember, useUpdateMember } from "@/hooks/useMembers";
 import { useSettings, useUpdateSetting } from "@/hooks/useSettings";
+import { useClearAllCourts } from "@/hooks/useCourts";
 import Swal from "sweetalert2";
 
 export default function Sidebar({ members, onClose, selectedMembers = [], onToggleMember, courtsMembers = [] }) {
@@ -39,6 +40,7 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
   const updateMemberMutation = useUpdateMember();
   const { data: settings = {} } = useSettings();
   const updateSettingMutation = useUpdateSetting();
+  const clearAllCourtsMutation = useClearAllCourts();
 
   // 當設定載入後更新本地狀態
   useMemo(() => {
@@ -136,6 +138,7 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
   //  處理刪除會員
   const handleDelete = async (id, memberName) => {
     const result = await Swal.fire({
+      title: "⚠️未經許可請勿操作⚠️",
       html: `確定要刪除會員 <strong>${memberName}</strong> 嗎？<br/>`,
       icon: "warning",
       showCancelButton: true,
@@ -175,11 +178,17 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
     setShowEditForm(true);
     setEditFormData(members.find((member) => member.id === id));
   };
-  // 處理刪除會員
+  // 處理編輯會員
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     await updateMemberMutation.mutateAsync(editFormData);
     setShowEditForm(false);
+    Swal.fire({
+      text: "更新成功",
+      icon: "success",
+      confirmButtonColor: "#3b82f6",
+      timer: 1500,
+    });
   };
 
   // 處理設定更新
@@ -206,12 +215,103 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
     }
   };
 
+  // 處理重置所有場地
+  const handleReset = async () => {
+    const result = await Swal.fire({
+      title: "⚠️未經隊長同意請勿操作⚠️",
+      html: `
+        <p class="text-lg mb-3">確定要重置所有場地資料嗎？</p>
+        <p class="text-sm text-red-600 font-semibold">這將會重置：</p>
+        <ul class="text-sm text-gray-700 mt-2 text-left ml-8">
+          <li>• 比賽區場地</li>
+          <li>• 排隊區場地</li>
+          <li>• 等待區場地</li>
+          <li>• 場地 ID 將重置為 1</li>
+        </ul>
+        <p class="text-sm text-red-600 font-bold mt-3">此操作無法復原！</p>
+      `,
+      icon: "error",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "確定重置",
+      cancelButtonText: "取消",
+      reverseButtons: true,
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await clearAllCourtsMutation.mutateAsync();
+        Swal.fire({
+          title: "清除成功！",
+          text: "所有場地資料已清除，ID 已重置",
+          icon: "success",
+          confirmButtonColor: "#3b82f6",
+          timer: 2000,
+        });
+      } catch (error) {
+        Swal.fire({
+          title: "清除失敗",
+          text: error.message || "無法清除場地資料",
+          icon: "error",
+          confirmButtonColor: "#3b82f6",
+        });
+      }
+    }
+  };
+
+  // 處理清除所有場地
+  const handleClearAllCourts = async () => {
+    const result = await Swal.fire({
+      title: "⚠️ 危險操作",
+      html: `
+        <p class="text-lg mb-3">確定要清除所有場地資料嗎？</p>
+        <p class="text-sm text-red-600 font-semibold">這將會刪除：</p>
+        <ul class="text-sm text-gray-700 mt-2 text-left ml-8">
+          <li>• 所有比賽區場地</li>
+          <li>• 所有排隊區場地</li>
+          <li>• 所有等待區場地</li>
+          <li>• 場地 ID 將重置為 1</li>
+        </ul>
+        <p class="text-sm text-red-600 font-bold mt-3">此操作無法復原！</p>
+      `,
+      icon: "error",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "確定清除",
+      cancelButtonText: "取消",
+      reverseButtons: true,
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await clearAllCourtsMutation.mutateAsync();
+        Swal.fire({
+          title: "清除成功！",
+          text: "所有場地資料已清除，ID 已重置",
+          icon: "success",
+          confirmButtonColor: "#3b82f6",
+          timer: 2000,
+        });
+      } catch (error) {
+        Swal.fire({
+          title: "清除失敗",
+          text: error.message || "無法清除場地資料",
+          icon: "error",
+          confirmButtonColor: "#3b82f6",
+        });
+      }
+    }
+  };
+
   return (
     <div className="w-screen md:w-80 max-w-full bg-gradient-to-b from-slate-50 to-white border-r border-gray-200 shadow-lg overflow-hidden flex flex-col h-full">
       {/* 側邊欄標題 */}
       <div className="relative bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white p-4 md:p-6 shadow-md flex-shrink-0">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 mb-2">
+            <Users className="w-5 h-5" />
             <h2 className="text-xl md:text-2xl font-bold tracking-tight truncate">隊員列表</h2>
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse flex-shrink-0"></div>
             <p className="text-blue-100 text-xs md:text-sm font-medium truncate">{members.length} 位隊員</p>
@@ -219,8 +319,11 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
         </div>
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
-            <div className="bg-white/20 p-2 md:p-3 rounded-xl backdrop-blur-sm flex-shrink-0">
-              <Users className="w-5 h-5 md:w-6 md:h-6" />
+            <div
+              className="bg-white/20 p-2 md:p-3 rounded-xl backdrop-blur-sm flex-shrink-0 cursor-pointer"
+              onClick={handleReset}
+            >
+              重置
             </div>
 
             <div
@@ -297,6 +400,17 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
             程度高到低
           </button>
         </div>
+
+        {/* 清除場地按鈕 */}
+        {/* <button
+          onClick={handleClearAllCourts}
+          disabled={clearAllCourtsMutation.isPending}
+          className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-2.5 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all duration-300 shadow-md hover:shadow-lg active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          title="清除所有場地資料"
+        >
+          <Trash2 className="w-5 h-5" />
+          <span>{clearAllCourtsMutation.isPending ? "清除中..." : "清除所有場地"}</span>
+        </button> */}
       </div>
 
       {/* 新增隊員表單 */}
@@ -505,7 +619,10 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
                       <div className="flex items-center gap-1 text-black">
                         <button
                           className="cursor-pointer hover:scale-110 transition-transform"
-                          onClick={() => handleEdit(member.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(member.id);
+                          }}
                           title="編輯會員"
                         >
                           <svg
@@ -558,7 +675,10 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
 
                         <button
                           className="cursor-pointer hover:scale-110 transition-transform"
-                          onClick={() => handleDelete(member.id, member.name)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(member.id, member.name);
+                          }}
                           title="刪除會員"
                         >
                           <svg
@@ -662,7 +782,7 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
                   type="text"
                   value={editFormData.name}
                   onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none"
+                  className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none text-black"
                   placeholder="請輸入姓名"
                   required
                 />
@@ -672,42 +792,65 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   身份 <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
+                <select
                   value={editFormData.identity}
                   onChange={(e) => setEditFormData({ ...editFormData, identity: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none"
-                  placeholder="請輸入身份"
+                  className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none text-black bg-white"
                   required
-                />
+                >
+                  <option value="">請選擇身份</option>
+                  <option value="會員">會員</option>
+                  <option value="臨打">臨打</option>
+                </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   程度 <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
+                <select
                   value={editFormData.level}
                   onChange={(e) => setEditFormData({ ...editFormData, level: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none"
-                  placeholder="請輸入程度"
+                  className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none text-black bg-white"
                   required
-                />
+                >
+                  <option value="">請選擇程度</option>
+                  <option value="0">0級</option>
+                  <option value="1">1級</option>
+                  <option value="2">2級</option>
+                  <option value="3">3級</option>
+                  <option value="4">4級</option>
+                  <option value="5">5級</option>
+                  <option value="6">6級</option>
+                  <option value="7">7級</option>
+                  <option value="8">8級</option>
+                  <option value="9">9級</option>
+                  <option value="10">10級</option>
+                  <option value="11">11級</option>
+                  <option value="12">12級</option>
+                  <option value="13">13級</option>
+                  <option value="14">14級</option>
+                  <option value="15">15級</option>
+                  <option value="16">16級</option>
+                  <option value="17">17級</option>
+                  <option value="18">18級</option>
+                </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   性別 <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
+                <select
                   value={editFormData.gender}
                   onChange={(e) => setEditFormData({ ...editFormData, gender: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none"
-                  placeholder="請輸入性別"
+                  className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none text-black bg-white"
                   required
-                />
+                >
+                  <option value="">請選擇性別</option>
+                  <option value="男">男 ♂</option>
+                  <option value="女">女 ♀</option>
+                </select>
               </div>
             </div>
 
@@ -765,7 +908,7 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800">系統設定</h3>
               </div>
-              <p className="text-gray-500 text-sm">調整系統運作參數</p>
+              {/* <p className="text-gray-500 text-sm">調整系統運作參數</p> */}
             </div>
 
             <form onSubmit={handleSettingsSubmit} className="space-y-6">
@@ -778,7 +921,7 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
                   max="10"
                   value={maxGameCourts}
                   onChange={(e) => setMaxGameCourts(parseInt(e.target.value) || 1)}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-lg font-semibold text-center focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-lg font-semibold text-center focus:ring-2 focus:ring-blue-400 focus:border-blue-400 outline-none transition text-blue-600"
                   required
                 />
                 <p className="text-xs text-gray-400 mt-2">
