@@ -343,7 +343,7 @@ export default function QueueArea({ members = [] }) {
                                 e.stopPropagation();
                                 handleRemoveMember(court.id, member.id);
                               }}
-                              className="text-red-500 hover:text-red-700 transition-colors flex-shrink-0 ml-1"
+                              className="text-red-500 hover:text-red-700 transition-colors flex-shrink-0 ml-1 cursor-pointer"
                               title="移除隊員"
                             >
                               <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />

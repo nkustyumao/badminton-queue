@@ -97,17 +97,17 @@ export default function GameArea({ members = [] }) {
     }
   };
 
-  const handleRemoveMember = async (courtId, memberId) => {
-    try {
-      await removeMemberMutation.mutateAsync({ courtId, memberId });
-    } catch (error) {
-      Swal.fire({
-        text: "移除隊員失敗",
-        icon: "error",
-        confirmButtonColor: "#3b82f6",
-      });
-    }
-  };
+  // const handleRemoveMember = async (courtId, memberId) => {
+  //   try {
+  //     await removeMemberMutation.mutateAsync({ courtId, memberId });
+  //   } catch (error) {
+  //     Swal.fire({
+  //       text: "移除隊員失敗",
+  //       icon: "error",
+  //       confirmButtonColor: "#3b82f6",
+  //     });
+  //   }
+  // };
 
   const handleDragOver = (e, courtId) => {
     e.preventDefault();
@@ -266,7 +266,7 @@ export default function GameArea({ members = [] }) {
                       e.stopPropagation();
                       handleDeleteCourt(court.id);
                     }}
-                    className="absolute top-2 right-2 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+                    className="absolute top-2 right-2 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors cursor-pointer"
                     title="刪除場地"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -310,7 +310,7 @@ export default function GameArea({ members = [] }) {
                             </span>
                             <span className="text-xs text-gray-600 flex-shrink-0">Lv.{member.level}</span>
                           </div>
-                          <button
+                          {/* <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleRemoveMember(court.id, member.id);
@@ -319,7 +319,7 @@ export default function GameArea({ members = [] }) {
                             title="移除隊員"
                           >
                             <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                          </button>
+                          </button> */}
                         </div>
                       );
                     })}
