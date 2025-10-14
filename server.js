@@ -16,10 +16,24 @@ const port = parseInt(process.env.PORT || '3000', 10);
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
+// 動態導入資料庫初始化模組
+let initDatabase;
+try {
+  initDatabase = require('./src/lib/initDatabase.js').initDatabase;
+} catch (error) {
+  console.log('⚠️ 無法載入資料庫初始化模組，跳過初始化');
+}
+
 // 儲存 Socket.IO 實例
 let io;
 
-app.prepare().then(() => {
+app.prepare().then(async () => {
+  // 🔥 初始化資料庫（僅在生產環境或首次啟動時）
+  if (initDatabase) {
+    console.log('🚀 開始初始化資料庫...');
+    await initDatabase();
+  }
+
   const httpServer = createServer(async (req, res) => {
     try {
       const parsedUrl = parse(req.url, true);
