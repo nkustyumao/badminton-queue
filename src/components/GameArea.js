@@ -241,9 +241,7 @@ export default function GameArea({ members = [] }) {
             </div>
           </div>
         ) : (
-          <div
-            className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-${maxGameCourts} gap-3 md:gap-4`}
-          >
+          <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-${maxGameCourts} gap-3`}>
             {courts.map((court) => {
               const totalLevel = calculateTotalLevel(court.members);
               const isDragOver = dragOverCourt === court.id;

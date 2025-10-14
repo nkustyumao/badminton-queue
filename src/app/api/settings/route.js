@@ -1,5 +1,6 @@
 import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { broadcastUpdate, WS_EVENTS } from "@/lib/websocket";
 
 export async function GET() {
   try {
@@ -52,6 +53,12 @@ export async function PUT(request) {
         [setting_key, setting_value]
       );
     }
+    
+    // 🔥 廣播 WebSocket 事件
+    broadcastUpdate(WS_EVENTS.SETTING_UPDATED, { 
+      setting_key, 
+      setting_value 
+    });
     
     return NextResponse.json({ 
       message: "更新成功",

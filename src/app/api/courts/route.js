@@ -1,5 +1,6 @@
 import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { broadcastUpdate, WS_EVENTS } from "@/lib/websocket";
 
 export async function GET(request) {
   try {
@@ -59,7 +60,12 @@ export async function POST(request) {
     );
     const newCourt = await query("SELECT * FROM courts WHERE id = ?", [result.insertId]);
     
-    return NextResponse.json({ ...newCourt[0], members: [] }, { status: 201 });
+    const courtData = { ...newCourt[0], members: [] };
+    
+    // 🔥 廣播 WebSocket 事件
+    broadcastUpdate(WS_EVENTS.COURT_CREATED, { court: courtData });
+    
+    return NextResponse.json(courtData, { status: 201 });
   } catch (error) {
     console.error("創建場地失敗:", error);
     return NextResponse.json(

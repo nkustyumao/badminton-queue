@@ -1,10 +1,14 @@
 import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { broadcastUpdate, WS_EVENTS } from "@/lib/websocket";
 
 export async function DELETE(request, { params }) {
   try {
     const { id } = await params;
     await query("DELETE FROM courts WHERE id = ?", [id]);
+    
+    // 🔥 廣播 WebSocket 事件
+    broadcastUpdate(WS_EVENTS.COURT_DELETED, { courtId: id });
     
     return NextResponse.json({ message: "刪除成功" });
   } catch (error) {
@@ -50,7 +54,12 @@ export async function PUT(request, { params }) {
       [id]
     );
     
-    return NextResponse.json({ ...updatedCourt[0], members });
+    const courtData = { ...updatedCourt[0], members };
+    
+    // 🔥 廣播 WebSocket 事件
+    broadcastUpdate(WS_EVENTS.COURT_UPDATED, { court: courtData });
+    
+    return NextResponse.json(courtData);
   } catch (error) {
     console.error("更新場地失敗:", error);
     return NextResponse.json(

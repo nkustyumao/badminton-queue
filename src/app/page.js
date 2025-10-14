@@ -11,11 +11,16 @@ import Sidebar from "@/components/Sidebar";
 import GameArea from "@/components/GameArea";
 import WaitingArea from "@/components/WaitingArea";
 import QueueArea from "@/components/QueueArea";
+import RealtimeSyncIndicator from "@/components/RealtimeSyncIndicator";
 import { Menu, X } from "lucide-react";
 import { useMembers } from "@/hooks/useMembers";
 import { useCourts } from "@/hooks/useCourts";
+import { useWebSocket } from "@/hooks/useWebSocket";
 
 export default function Home() {
+  // 🔥 啟用 WebSocket 實時同步
+  useWebSocket();
+  
   // 手機版側邊欄開關狀態
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   // 選取的隊員ID列表
@@ -130,6 +135,9 @@ export default function Home() {
           <div className="h-4 lg:hidden"></div>
         </div>
       </div>
+
+      {/* 實時同步狀態指示器 */}
+      <RealtimeSyncIndicator />
 
       {/* 全局動畫樣式 */}
       <style jsx>{`

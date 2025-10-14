@@ -1,5 +1,6 @@
 import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { broadcastUpdate, WS_EVENTS } from "@/lib/websocket";
 
 export async function POST(request, { params }) {
   try {
@@ -31,6 +32,12 @@ export async function POST(request, { params }) {
         [courtId, memberId]
       );
     }
+    
+    // 🔥 廣播 WebSocket 事件
+    broadcastUpdate(WS_EVENTS.MEMBER_ADDED_TO_COURT, { 
+      courtId: parseInt(courtId), 
+      memberIds 
+    });
     
     return NextResponse.json({ message: "新增成功" }, { status: 201 });
   } catch (error) {
@@ -65,6 +72,12 @@ export async function DELETE(request, { params }) {
       "DELETE FROM court_members WHERE court_id = ? AND member_id = ?",
       [courtId, memberId]
     );
+    
+    // 🔥 廣播 WebSocket 事件
+    broadcastUpdate(WS_EVENTS.MEMBER_REMOVED_FROM_COURT, { 
+      courtId: parseInt(courtId), 
+      memberId: parseInt(memberId) 
+    });
     
     return NextResponse.json({ message: "移除成功" });
   } catch (error) {

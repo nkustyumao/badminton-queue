@@ -6,6 +6,7 @@
 
 import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { broadcastUpdate, WS_EVENTS } from "@/lib/websocket";
 
 export async function GET() {
   try {
@@ -77,16 +78,21 @@ export async function POST(request) {
       gender,
     ]);
 
+    const newMember = {
+      id: result.insertId,
+      name,
+      identity,
+      level: parseInt(level),
+      gender,
+    };
+
+    // 🔥 廣播 WebSocket 事件
+    broadcastUpdate(WS_EVENTS.MEMBER_CREATED, { member: newMember });
+
     return NextResponse.json({
       success: true,
       message: "隊員新增成功",
-      data: {
-        id: result.insertId,
-        name,
-        identity,
-        level: parseInt(level),
-        gender,
-      },
+      data: newMember,
     });
   } catch (error) {
     console.error("新增會員錯誤:", error);
@@ -105,6 +111,10 @@ export async function DELETE(request) {
   try {
     const { id } = await request.json();
     await query("DELETE FROM member WHERE id = ?", [id]);
+    
+    // 🔥 廣播 WebSocket 事件
+    broadcastUpdate(WS_EVENTS.MEMBER_DELETED, { memberId: id });
+    
     return NextResponse.json({ success: true, message: "隊員刪除成功" });
   } catch (error) {
     console.error("刪除會員錯誤:", error);
@@ -125,6 +135,11 @@ export async function PUT(request, { params }) {
       gender,
       id,
     ]);
+
+    // 🔥 廣播 WebSocket 事件
+    broadcastUpdate(WS_EVENTS.MEMBER_UPDATED, { 
+      member: { id, name, identity, level, gender } 
+    });
 
     return NextResponse.json({ success: true, message: "更新成功" });
   } catch (error) {

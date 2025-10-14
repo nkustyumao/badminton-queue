@@ -5,6 +5,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchMembers, createMember, updateMember, deleteMember } from '@/services/memberService';
+import { realtimeConfig } from '@/config/realtimeConfig';
 
 /**
  * Query Keys - 統一管理查詢鍵
@@ -25,9 +26,13 @@ export function useMembers() {
   return useQuery({
     queryKey: memberKeys.lists(),
     queryFn: fetchMembers,
-    staleTime: 1000 * 60 * 5, // 5 分鐘內資料視為新鮮
-    gcTime: 1000 * 60 * 10, // 快取保留 10 分鐘
     retry: 1, // 失敗時重試 1 次
+    // 使用實時同步配置
+    refetchInterval: realtimeConfig.refetchInterval,
+    refetchOnWindowFocus: realtimeConfig.refetchOnWindowFocus,
+    refetchOnReconnect: realtimeConfig.refetchOnReconnect,
+    staleTime: realtimeConfig.staleTime,
+    gcTime: realtimeConfig.gcTime,
   });
 }
 

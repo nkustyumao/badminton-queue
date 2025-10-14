@@ -1,5 +1,6 @@
 import { query } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { broadcastUpdate, WS_EVENTS } from "@/lib/websocket";
 
 /**
  * 清除所有場地資料
@@ -20,6 +21,9 @@ export async function DELETE() {
     // 4. 重置 court_members 表的自動遞增 ID (如果有的話)
     // court_members 通常沒有單獨的 ID，但如果有就取消註解
     // await query("ALTER TABLE court_members AUTO_INCREMENT = 1");
+    
+    // 🔥 廣播 WebSocket 事件
+    broadcastUpdate(WS_EVENTS.COURTS_CLEARED, {});
     
     return NextResponse.json({ 
       message: "所有場地資料已清除",

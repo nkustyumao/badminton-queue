@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { realtimeConfig } from "@/config/realtimeConfig";
 
 export function useSettings() {
   return useQuery({
@@ -10,6 +11,11 @@ export function useSettings() {
       }
       return response.json();
     },
+    // 使用實時同步配置
+    refetchInterval: realtimeConfig.refetchInterval,
+    refetchOnWindowFocus: realtimeConfig.refetchOnWindowFocus,
+    refetchOnReconnect: realtimeConfig.refetchOnReconnect,
+    staleTime: realtimeConfig.staleTime,
   });
 }
 
