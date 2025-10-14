@@ -12,6 +12,7 @@ import GameArea from "@/components/GameArea";
 import WaitingArea from "@/components/WaitingArea";
 import QueueArea from "@/components/QueueArea";
 import RealtimeSyncIndicator from "@/components/RealtimeSyncIndicator";
+import MemberSelectionModal from "@/components/MemberSelectionModal";
 import { Menu, X } from "lucide-react";
 import { useMembers } from "@/hooks/useMembers";
 import { useCourts } from "@/hooks/useCourts";
@@ -138,6 +139,9 @@ export default function Home() {
 
       {/* 實時同步狀態指示器 */}
       <RealtimeSyncIndicator />
+
+      {/* 公用隊員選擇彈窗 */}
+      <MemberSelectionModal members={members} />
 
       {/* 全局動畫樣式 */}
       <style jsx>{`
