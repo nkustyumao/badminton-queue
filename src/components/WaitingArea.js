@@ -23,6 +23,7 @@ import dayjs from "dayjs";
 export default function WaitingArea({ members = [], selectedMembers = [], onToggleMember, onClearSelection }) {
   const { data: courts = [], isLoading } = useCourts("waiting");
   const { data: gameCourts = [] } = useCourts("game");
+  const { data: queueCourts = [] } = useCourts("queue");
   const { data: settings = {} } = useSettings();
   const createCourtMutation = useCreateCourt();
   const deleteCourtMutation = useDeleteCourt();
@@ -51,9 +52,14 @@ export default function WaitingArea({ members = [], selectedMembers = [], onTogg
     try {
       const maxGameCourts = parseInt(settings.max_game_courts || 2);
       const currentGameCourts = gameCourts.length;
+      const queueCourtsCount = queueCourts.length;
 
-      if (currentGameCourts < maxGameCourts) {
-        // 比賽區未滿，移至比賽區
+      // 檢查是否可以直接進入比賽區
+      // 條件：比賽區有空位 且 排隊區沒有人排隊（維持先來後到）
+      const canEnterGameDirectly = currentGameCourts < maxGameCourts && queueCourtsCount === 0;
+
+      if (canEnterGameDirectly) {
+        // 比賽區有空位且沒有人排隊，可以直接進入比賽區
         await updateCourtStatusMutation.mutateAsync({
           courtId: court.id,
           status: "game",
@@ -65,21 +71,32 @@ export default function WaitingArea({ members = [], selectedMembers = [], onTogg
           timer: 1500,
         });
       } else {
-        // 比賽區已滿，移至排隊區
+        // 需要排隊（可能是比賽區滿了，或是有人在排隊）
         await updateCourtStatusMutation.mutateAsync({
           courtId: court.id,
           status: "queue",
         });
-        Swal.fire({
-          text: "比賽區已滿，已加入排隊區",
-          icon: "info",
-          confirmButtonColor: "#3b82f6",
-          timer: 1500,
-        });
+        
+        // 根據不同情況顯示不同訊息
+        if (currentGameCourts >= maxGameCourts) {
+          Swal.fire({
+            text: "目前比賽區已滿，已加入排隊區",
+            icon: "info",
+            confirmButtonColor: "#3b82f6",
+            timer: 1500,
+          });
+        } else {
+          Swal.fire({
+            text: `前面還有 ${queueCourtsCount} 場在排隊`,
+            icon: "info",
+            confirmButtonColor: "#3b82f6",
+            timer: 2000,
+          });
+        }
       }
     } catch (error) {
       Swal.fire({
-        text: "操作失敗",
+        text: error.message,
         icon: "error",
         confirmButtonColor: "#3b82f6",
       });
@@ -100,12 +117,6 @@ export default function WaitingArea({ members = [], selectedMembers = [], onTogg
     if (result.isConfirmed) {
       try {
         await deleteCourtMutation.mutateAsync(courtId);
-        Swal.fire({
-          text: "刪除成功",
-          icon: "success",
-          confirmButtonColor: "#3b82f6",
-          timer: 1500,
-        });
       } catch (error) {
         Swal.fire({
           text: "刪除失敗",

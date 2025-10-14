@@ -39,6 +39,12 @@ export function useWebSocket() {
 
     socketRef.current = socket;
 
+    // 將 socket 實例存儲到 window，讓指示器可以訪問
+    if (typeof window !== 'undefined') {
+      if (!window.io) window.io = {};
+      window.io.socket = socket;
+    }
+
     // 連接成功
     socket.on('connect', () => {
       console.log('✅ WebSocket 已連接:', socket.id);
@@ -66,26 +72,39 @@ export function useWebSocket() {
       queryClient.invalidateQueries();
     });
 
+    // 發送自定義事件到狀態指示器
+    const notifyIndicator = (eventType) => {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('websocket-event', {
+          detail: { type: eventType }
+        }));
+      }
+    };
+
     // ============ 監聽場地相關事件 ============
     
     socket.on(WS_EVENTS.COURT_CREATED, () => {
       console.log('📡 收到事件: 場地已創建');
       queryClient.invalidateQueries({ queryKey: ['courts'] });
+      notifyIndicator('場地創建');
     });
 
     socket.on(WS_EVENTS.COURT_UPDATED, () => {
       console.log('📡 收到事件: 場地已更新');
       queryClient.invalidateQueries({ queryKey: ['courts'] });
+      notifyIndicator('場地更新');
     });
 
     socket.on(WS_EVENTS.COURT_DELETED, () => {
       console.log('📡 收到事件: 場地已刪除');
       queryClient.invalidateQueries({ queryKey: ['courts'] });
+      notifyIndicator('場地刪除');
     });
 
     socket.on(WS_EVENTS.COURTS_CLEARED, () => {
       console.log('📡 收到事件: 所有場地已清除');
       queryClient.invalidateQueries({ queryKey: ['courts'] });
+      notifyIndicator('清除場地');
     });
 
     // ============ 監聽隊員相關事件 ============
@@ -93,18 +112,21 @@ export function useWebSocket() {
     socket.on(WS_EVENTS.MEMBER_CREATED, () => {
       console.log('📡 收到事件: 隊員已創建');
       queryClient.invalidateQueries({ queryKey: ['members'] });
+      notifyIndicator('隊員創建');
     });
 
     socket.on(WS_EVENTS.MEMBER_UPDATED, () => {
       console.log('📡 收到事件: 隊員已更新');
       queryClient.invalidateQueries({ queryKey: ['members'] });
       queryClient.invalidateQueries({ queryKey: ['courts'] });
+      notifyIndicator('隊員更新');
     });
 
     socket.on(WS_EVENTS.MEMBER_DELETED, () => {
       console.log('📡 收到事件: 隊員已刪除');
       queryClient.invalidateQueries({ queryKey: ['members'] });
       queryClient.invalidateQueries({ queryKey: ['courts'] });
+      notifyIndicator('隊員刪除');
     });
 
     // ============ 監聽場地隊員關聯事件 ============
@@ -112,11 +134,13 @@ export function useWebSocket() {
     socket.on(WS_EVENTS.MEMBER_ADDED_TO_COURT, () => {
       console.log('📡 收到事件: 隊員已加入場地');
       queryClient.invalidateQueries({ queryKey: ['courts'] });
+      notifyIndicator('加入場地');
     });
 
     socket.on(WS_EVENTS.MEMBER_REMOVED_FROM_COURT, () => {
       console.log('📡 收到事件: 隊員已移出場地');
       queryClient.invalidateQueries({ queryKey: ['courts'] });
+      notifyIndicator('移出場地');
     });
 
     // ============ 監聽設定相關事件 ============
@@ -124,6 +148,7 @@ export function useWebSocket() {
     socket.on(WS_EVENTS.SETTING_UPDATED, () => {
       console.log('📡 收到事件: 設定已更新');
       queryClient.invalidateQueries({ queryKey: ['settings'] });
+      notifyIndicator('設定更新');
     });
 
     // 清理函數

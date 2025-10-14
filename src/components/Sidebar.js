@@ -127,8 +127,6 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
         gender: "",
       });
       setShowAddForm(false);
-
-      alert("新增成功！");
     } catch (error) {
       console.error("新增會員錯誤:", error);
       alert("新增失敗：" + (error?.message || "請稍後再試"));
@@ -153,15 +151,6 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
     if (result.isConfirmed) {
       try {
         await deleteMemberMutation.mutateAsync(id);
-
-        Swal.fire({
-          text: `已成功刪除會員 ${memberName}`,
-          icon: "success",
-          confirmButtonColor: "#3b82f6",
-          confirmButtonText: "確定",
-          timer: 2000,
-          timerProgressBar: true,
-        });
       } catch (error) {
         Swal.fire({
           text: error?.message || "無法刪除會員，請稍後再試",
@@ -183,12 +172,6 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
     e.preventDefault();
     await updateMemberMutation.mutateAsync(editFormData);
     setShowEditForm(false);
-    Swal.fire({
-      text: "更新成功",
-      icon: "success",
-      confirmButtonColor: "#3b82f6",
-      timer: 1500,
-    });
   };
 
   // 處理設定更新
@@ -198,12 +181,6 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
       await updateSettingMutation.mutateAsync({
         setting_key: "max_game_courts",
         setting_value: maxGameCourts.toString(),
-      });
-      Swal.fire({
-        text: "設定已更新",
-        icon: "success",
-        confirmButtonColor: "#3b82f6",
-        timer: 1500,
       });
       setShowSettingsModal(false);
     } catch (error) {

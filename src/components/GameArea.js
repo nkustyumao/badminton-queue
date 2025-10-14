@@ -69,12 +69,6 @@ export default function GameArea({ members = [] }) {
     if (result.isConfirmed) {
       try {
         await deleteCourtMutation.mutateAsync(courtId);
-        Swal.fire({
-          text: "刪除成功",
-          icon: "success",
-          confirmButtonColor: "#3b82f6",
-          timer: 1500,
-        });
       } catch (error) {
         Swal.fire({
           text: "刪除失敗",
