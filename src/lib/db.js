@@ -3,15 +3,16 @@
  * 使用 MySQL2 連接到資料庫
  */
 
-import mysql from "mysql2/promise";
+const mysql = require("mysql2/promise");
 
-// 建立資料庫連接池
+// 使用環境變數配置資料庫連接
+// 本地開發使用 .env.local，生產環境使用 Railway 環境變數
 const pool = mysql.createPool({
-  host: "203.64.101.132",
-  user: "root",
-  password: "$2a$08$OjPb6RxHpfCSCCD/55ijyOa0BHVJYZ.4PQj6bhenLuLgmMIVkFUUW",
-  database: "badminton",
-  port: 3306,
+  host: process.env.DB_HOST || "localhost",
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASSWORD || "",
+  database: process.env.DB_NAME || "badminton",
+  port: parseInt(process.env.DB_PORT || "3306"),
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
@@ -23,9 +24,9 @@ const pool = mysql.createPool({
  * @param {Array} params - 查詢參數
  * @returns {Promise} 查詢結果
  */
-export async function query(query, params = []) {
+async function query(sql, params = []) {
   try {
-    const [results] = await pool.execute(query, params);
+    const [results] = await pool.execute(sql, params);
     return results;
   } catch (error) {
     console.error("資料庫查詢錯誤:", error);
@@ -33,4 +34,5 @@ export async function query(query, params = []) {
   }
 }
 
-export default pool;
+module.exports = { query, pool };
+module.exports.default = pool;

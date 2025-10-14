@@ -72,7 +72,7 @@ async function initDatabase() {
     }
 
     console.log('🎉 資料庫初始化完成！');
-    return true;
+    return true; 
   } catch (error) {
     console.error('❌ 資料庫初始化失敗:', error);
     // 不要拋出錯誤，讓應用程式繼續運行
