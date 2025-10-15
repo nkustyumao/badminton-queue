@@ -172,7 +172,7 @@ export default function GameArea({ members = [] }) {
         <div className="flex items-center gap-2 md:gap-3">
           <div className="bg-white/20 px-2 md:px-3 py-0.5 md:py-1 rounded-full">
             <span className="text-xs md:text-sm font-bold">
-              {courts.length} / {maxGameCourts} 場
+              今日開放 {maxGameCourts} 塊場地
             </span>
           </div>
           {/* <button

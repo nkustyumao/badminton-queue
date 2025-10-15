@@ -177,12 +177,12 @@ export default function QueueArea({ members = [] }) {
         <div className="flex items-center gap-2 md:gap-3">
           <Users className="w-5 h-5 md:w-6 md:h-6" />
           <div>
-            <h3 className="text-base md:text-lg font-bold">排隊區 (先後順序由左至右依序排隊)</h3>
+            <h3 className="text-base md:text-lg font-bold">排隊區 (由左至右依序下場)</h3>
           </div>
         </div>
         <div className="flex items-center gap-2 md:gap-3">
           <div className="bg-white/20 px-2 md:px-3 py-0.5 md:py-1 rounded-full">
-            <span className="text-xs md:text-sm font-bold">{courts.length} 場排隊中</span>
+            <span className="text-xs md:text-sm font-bold">{courts.length == 0 ? "尚無排隊場地" : `${courts.length} 場排隊中`}</span>
           </div>
           {/* <button
             onClick={handleCreateCourt}

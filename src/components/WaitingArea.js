@@ -191,7 +191,7 @@ export default function WaitingArea({ members = [], selectedMembers = [], onTogg
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-auto flex flex-col hover:shadow-md transition-shadow duration-300">
       {/* 區塊標題 */}
-      <div className="bg-gradient-to-r from-[#08b834] to-[#e5e77a] text-white p-3 md:p-4 flex items-center justify-between">
+      <div className="bg-gradient-to-r from-[#08b834] to-[#bfc751] text-white p-3 md:p-4 flex items-center justify-between">
         <div className="flex items-center gap-2 md:gap-3">
           <Clock className="w-5 h-5 md:w-6 md:h-6" />
           <div>
@@ -224,7 +224,7 @@ export default function WaitingArea({ members = [], selectedMembers = [], onTogg
             <div className="text-center">
               <Clock className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 md:mb-4 text-[#08b834] opacity-50" />
               <p className="text-gray-600 font-medium text-sm md:text-base">尚無場地</p>
-              <p className="text-gray-400 text-xs md:text-sm mt-1 md:mt-2">點擊右上角 + 號新增場地</p>
+              <p className="text-gray-500 text-xs md:text-sm mt-1 md:mt-2">點擊右上角 + 號新增場地</p>
             </div>
           </div>
         ) : (
