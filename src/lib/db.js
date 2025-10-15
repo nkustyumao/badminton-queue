@@ -8,11 +8,11 @@ const mysql = require("mysql2/promise");
 // 使用環境變數配置資料庫連接
 // 本地開發使用 .env.local，生產環境使用 Railway 環境變數
 const pool = mysql.createPool({
-  host: process.env.DB_HOST || "interchange.proxy.rlwy.net",
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "XZXLclYBgDoIkldrmkRwPQwZDpQqnutr",
-  database: process.env.DB_NAME || "railway",
-  port: parseInt(process.env.DB_PORT || "27976"),
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: parseInt(process.env.DB_PORT),
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
