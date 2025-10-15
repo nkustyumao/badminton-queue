@@ -8,7 +8,7 @@
 import { Users } from "lucide-react";
 import { TiDelete } from "react-icons/ti";
 import { useMemberModalStore } from "@/store/useMemberModalStore";
-import Swal from "sweetalert2";
+import { toast } from "react-toastify";
 
 // 根據等級獲取樣式
 const getLevelStyle = (level) => {
@@ -49,21 +49,20 @@ export default function MemberSelectionModal({ members = [] }) {
   // 處理確認添加
   const handleConfirm = async () => {
     if (selectedMemberIds.length > remainingSlots) {
-      Swal.fire({
-        text: `最多只能再加入 ${remainingSlots} 位隊員`,
-        icon: "warning",
-        confirmButtonColor: "#3b82f6",
+      toast.warning(`⚠️ 最多只能再加入 ${remainingSlots} 位隊員`, {
+        position: "top-right",
       });
       return;
     }
 
     try {
       await confirmSelection();
+      toast.success(`✅ 已成功加入 ${selectedMemberIds.length} 位隊員`, {
+        position: "top-right",
+      });
     } catch (error) {
-      Swal.fire({
-        text: error?.message || "添加隊員失敗，請稍後再試",
-        icon: "error",
-        confirmButtonColor: "#3b82f6",
+      toast.error(error?.message || "❌ 添加隊員失敗，請稍後再試", {
+        position: "top-right",
       });
     }
   };

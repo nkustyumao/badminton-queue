@@ -8,12 +8,11 @@
 
 import { useState, useMemo } from "react";
 import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
 import GameArea from "@/components/GameArea";
 import WaitingArea from "@/components/WaitingArea";
 import QueueArea from "@/components/QueueArea";
-import RealtimeSyncIndicator from "@/components/RealtimeSyncIndicator";
 import MemberSelectionModal from "@/components/MemberSelectionModal";
-import { Menu, X } from "lucide-react";
 import { useMembers } from "@/hooks/useMembers";
 import { useCourts } from "@/hooks/useCourts";
 import { useWebSocket } from "@/hooks/useWebSocket";
@@ -21,7 +20,7 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 export default function Home() {
   // 🔥 啟用 WebSocket 實時同步
   useWebSocket();
-  
+
   // 手機版側邊欄開關狀態
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   // 選取的隊員ID列表
@@ -49,20 +48,14 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden relative">
-      {/* 手機版漢堡選單按鈕 */}
-      <button
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-colors"
-        aria-label="Toggle menu"
-      >
-        {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-      </button>
+    <div className="flex h-screen bg-gray-50 overflow-hidden relative pt-16">
+      {/* Header - 包含漢堡選單和實時同步狀態 */}
+      <Header isSidebarOpen={isSidebarOpen} onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
 
       {/* 手機版遮罩層 */}
       {isSidebarOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-30 backdrop-blur-sm"
+          className="lg:hidden fixed inset-0 bg-black/50 z-30 backdrop-blur-sm mt-16"
           onClick={() => setIsSidebarOpen(false)}
         ></div>
       )}
@@ -108,37 +101,33 @@ export default function Home() {
 
           {/* 三個主要區塊 */}
           {!isLoading && !isError && (
-            <div className="space-y-3 md:space-y-4 lg:space-y-6">
-              {/* 比賽區和排隊區 */}
-              {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 lg:gap-6"> */}
-              {/* 比賽區 */}
-              <div className=" animate-slide-up" style={{ animationDelay: "0.1s" }}>
-                <GameArea members={members} />
+            <>
+              <div className="space-y-3 md:space-y-4 lg:space-y-6">
+                {/* 比賽區 */}
+                <div className=" animate-slide-up" style={{ animationDelay: "0.1s" }}>
+                  <GameArea members={members} />
+                </div>
+                {/* 排隊區 */}
+                <div className=" animate-slide-up" style={{ animationDelay: "0.2s" }}>
+                  <QueueArea members={members} />
+                </div>
+                {/* 等待區 */}
+                <div className=" animate-slide-up" style={{ animationDelay: "0.3s" }}>
+                  <WaitingArea
+                    members={members}
+                    selectedMembers={selectedMembers}
+                    onToggleMember={handleToggleMember}
+                    onClearSelection={handleClearSelection}
+                  />
+                </div>
               </div>
-              {/* 排隊區 */}
-              <div className=" animate-slide-up" style={{ animationDelay: "0.2s" }}>
-                <QueueArea members={members} />
-              </div>
-              {/* </div> */}
-              {/* 等待區 */}
-              <div className=" animate-slide-up" style={{ animationDelay: "0.3s" }}>
-                <WaitingArea
-                  members={members}
-                  selectedMembers={selectedMembers}
-                  onToggleMember={handleToggleMember}
-                  onClearSelection={handleClearSelection}
-                />
-              </div>
-            </div>
+            </>
           )}
 
           {/* 手機版底部安全區域 */}
           <div className="h-4 lg:hidden"></div>
         </div>
       </div>
-
-      {/* 實時同步狀態指示器 */}
-      <RealtimeSyncIndicator />
 
       {/* 公用隊員選擇彈窗 */}
       <MemberSelectionModal members={members} />

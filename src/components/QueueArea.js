@@ -15,6 +15,7 @@ import {
   useUpdateCourtStatus,
 } from "@/hooks/useCourts";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { useSettings } from "@/hooks/useSettings";
 import dayjs from "dayjs";
@@ -31,7 +32,7 @@ export default function QueueArea({ members = [] }) {
   const updateCourtStatusMutation = useUpdateCourtStatus();
 
   const [dragOverCourt, setDragOverCourt] = useState(null);
-  
+
   // 使用 Zustand store 管理彈窗
   const openModal = useMemberModalStore((state) => state.openModal);
 
@@ -41,11 +42,12 @@ export default function QueueArea({ members = [] }) {
   const handleCreateCourt = async () => {
     try {
       await createCourtMutation.mutateAsync("queue");
+      toast.success("✅ 已成功創建場地", {
+        position: "top-right",
+      });
     } catch (error) {
-      Swal.fire({
-        text: "創建場地失敗",
-        icon: "error",
-        confirmButtonColor: "#3b82f6",
+      toast.error("❌ 創建場地失敗", {
+        position: "top-right",
       });
     }
   };
@@ -59,17 +61,14 @@ export default function QueueArea({ members = [] }) {
       cancelButtonColor: "#6b7280",
       confirmButtonText: "確定刪除",
       cancelButtonText: "取消",
+      reverseButtons: true,
     });
 
     if (result.isConfirmed) {
       try {
         await deleteCourtMutation.mutateAsync(courtId);
       } catch (error) {
-        Swal.fire({
-          text: "刪除失敗",
-          icon: "error",
-          confirmButtonColor: "#3b82f6",
-        });
+        toast.error("刪除失敗");
       }
     }
   };
@@ -80,17 +79,13 @@ export default function QueueArea({ members = [] }) {
         courtId: court.id,
         status: "game",
       });
-      Swal.fire({
-        text: "熱血開打",
-        icon: "success",
-        confirmButtonColor: "#3b82f6",
-        timer: 1500,
+      toast.success("🔥 熱血開打！", {
+        position: "top-right",
+        autoClose: 1500,
       });
     } catch (error) {
-      Swal.fire({
-        text: "發生錯誤請重新整理",
-        icon: "error",
-        confirmButtonColor: "#3b82f6",
+      toast.error("❌ 發生錯誤，請重新整理", {
+        position: "top-right",
       });
     }
   };
@@ -98,11 +93,12 @@ export default function QueueArea({ members = [] }) {
   const handleAddMembers = async (courtId, memberIds) => {
     try {
       await addMembersMutation.mutateAsync({ courtId, memberIds });
+      toast.success("✅ 已成功加入隊員", {
+        position: "top-right",
+      });
     } catch (error) {
-      Swal.fire({
-        text: error.message || "新增隊員失敗",
-        icon: "error",
-        confirmButtonColor: "#3b82f6",
+      toast.error(error.message || "❌ 新增隊員失敗", {
+        position: "top-right",
       });
     }
   };
@@ -110,11 +106,12 @@ export default function QueueArea({ members = [] }) {
   const handleRemoveMember = async (courtId, memberId) => {
     try {
       await removeMemberMutation.mutateAsync({ courtId, memberId });
+      toast.success("✅ 已成功移除隊員", {
+        position: "top-right",
+      });
     } catch (error) {
-      Swal.fire({
-        text: "移除隊員失敗",
-        icon: "error",
-        confirmButtonColor: "#3b82f6",
+      toast.error("❌ 移除隊員失敗", {
+        position: "top-right",
       });
     }
   };
@@ -137,10 +134,8 @@ export default function QueueArea({ members = [] }) {
       if (memberData) {
         const member = JSON.parse(memberData);
         if (court.members.length >= 4) {
-          Swal.fire({
-            text: "場地最多只能有4位隊員",
-            icon: "warning",
-            confirmButtonColor: "#3b82f6",
+          toast.warning("⚠️ 場地最多只能有 4 位隊員", {
+            position: "top-right",
           });
           return;
         }

@@ -5,7 +5,7 @@
 
 "use client";
 
-import { Trophy, Plus, Trash2, Users, Settings, X } from "lucide-react";
+import { Trophy, Plus, Trash2, Users, Settings, X, Flag, FlagOff } from "lucide-react";
 import {
   useCourts,
   useCreateCourt,
@@ -14,6 +14,7 @@ import {
   useRemoveMemberFromCourt,
 } from "@/hooks/useCourts";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { useSettings } from "@/hooks/useSettings";
 import dayjs from "dayjs";
@@ -28,7 +29,7 @@ export default function GameArea({ members = [] }) {
   const removeMemberMutation = useRemoveMemberFromCourt();
 
   const [dragOverCourt, setDragOverCourt] = useState(null);
-  
+
   // 使用 Zustand store 管理彈窗
   const openModal = useMemberModalStore((state) => state.openModal);
 
@@ -36,21 +37,20 @@ export default function GameArea({ members = [] }) {
 
   const handleCreateCourt = async () => {
     if (courts.length >= maxGameCourts) {
-      Swal.fire({
-        text: `比賽區最多只能有 ${maxGameCourts} 塊場地`,
-        icon: "warning",
-        confirmButtonColor: "#3b82f6",
+      toast.warning(`⚠️ 比賽區最多只能有 ${maxGameCourts} 塊場地`, {
+        position: "top-right",
       });
       return;
     }
 
     try {
       await createCourtMutation.mutateAsync("game");
+      toast.success("✅ 已成功創建場地", {
+        position: "top-right",
+      });
     } catch (error) {
-      Swal.fire({
-        text: "創建場地失敗",
-        icon: "error",
-        confirmButtonColor: "#3b82f6",
+      toast.error("❌ 創建場地失敗", {
+        position: "top-right",
       });
     }
   };
@@ -64,6 +64,7 @@ export default function GameArea({ members = [] }) {
       cancelButtonColor: "#6b7280",
       confirmButtonText: "確定刪除",
       cancelButtonText: "取消",
+      reverseButtons: true,
     });
 
     if (result.isConfirmed) {
@@ -82,11 +83,12 @@ export default function GameArea({ members = [] }) {
   const handleAddMembers = async (courtId, memberIds) => {
     try {
       await addMembersMutation.mutateAsync({ courtId, memberIds });
+      toast.success("✅ 已成功加入隊員", {
+        position: "top-right",
+      });
     } catch (error) {
-      Swal.fire({
-        text: error.message || "新增隊員失敗",
-        icon: "error",
-        confirmButtonColor: "#3b82f6",
+      toast.error(error.message || "❌ 新增隊員失敗", {
+        position: "top-right",
       });
     }
   };
@@ -121,10 +123,8 @@ export default function GameArea({ members = [] }) {
       if (memberData) {
         const member = JSON.parse(memberData);
         if (court.members.length >= 4) {
-          Swal.fire({
-            text: "場地最多只能有4位隊員",
-            icon: "warning",
-            confirmButtonColor: "#3b82f6",
+          toast.warning("⚠️ 場地最多只能有 4 位隊員", {
+            position: "top-right",
           });
           return;
         }
@@ -224,10 +224,11 @@ export default function GameArea({ members = [] }) {
                       e.stopPropagation();
                       handleDeleteCourt(court.id);
                     }}
-                    className="absolute top-2 right-2 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors cursor-pointer"
-                    title="刪除場地"
+                    className="absolute top-2 right-4 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors cursor-pointer group"
+                    title="結束比賽"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <FlagOff className="w-4 h-4 hidden group-hover:block" />
+                    <Flag className="w-4 h-4 block group-hover:hidden" />
                   </button>
 
                   {/* 場地標題和總程度 */}

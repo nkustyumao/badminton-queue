@@ -19,9 +19,11 @@ import Swal from "sweetalert2";
 import { useSettings } from "@/hooks/useSettings";
 import dayjs from "dayjs";
 import { useMemberModalStore } from "@/store/useMemberModalStore";
+import { toast } from "react-toastify";
 
 export default function WaitingArea({ members = [], selectedMembers = [], onToggleMember, onClearSelection }) {
   const { data: courts = [], isLoading } = useCourts("waiting");
+  console.log(courts);
   const { data: gameCourts = [] } = useCourts("game");
   const { data: queueCourts = [] } = useCourts("queue");
   const { data: settings = {} } = useSettings();
@@ -32,18 +34,19 @@ export default function WaitingArea({ members = [], selectedMembers = [], onTogg
   const updateCourtStatusMutation = useUpdateCourtStatus();
 
   const [dragOverCourt, setDragOverCourt] = useState(null);
-  
+
   // 使用 Zustand store 管理彈窗
   const openModal = useMemberModalStore((state) => state.openModal);
 
   const handleCreateCourt = async () => {
     try {
       await createCourtMutation.mutateAsync("waiting");
+      toast.success("✅ 已成功創建場地", {
+        position: "top-right",
+      });
     } catch (error) {
-      Swal.fire({
-        text: "創建場地失敗",
-        icon: "error",
-        confirmButtonColor: "#3b82f6",
+      toast.error("❌ 創建場地失敗", {
+        position: "top-right",
       });
     }
   };
@@ -64,42 +67,23 @@ export default function WaitingArea({ members = [], selectedMembers = [], onTogg
           courtId: court.id,
           status: "game",
         });
-        Swal.fire({
-          text: "已加入比賽區",
-          icon: "success",
-          confirmButtonColor: "#3b82f6",
-          timer: 1500,
-        });
+        toast.success("已加入比賽區");
       } else {
         // 需要排隊（可能是比賽區滿了，或是有人在排隊）
         await updateCourtStatusMutation.mutateAsync({
           courtId: court.id,
           status: "queue",
         });
-        
+
         // 根據不同情況顯示不同訊息
         if (currentGameCourts >= maxGameCourts) {
-          Swal.fire({
-            text: "目前比賽區已滿，已加入排隊區",
-            icon: "info",
-            confirmButtonColor: "#3b82f6",
-            timer: 1500,
-          });
+          toast.info("目前比賽區已滿，已加入排隊區");
         } else {
-          Swal.fire({
-            text: `前面還有 ${queueCourtsCount} 場在排隊`,
-            icon: "info",
-            confirmButtonColor: "#3b82f6",
-            timer: 2000,
-          });
+          toast.info(`前面還有 ${queueCourtsCount} 場在排隊`);
         }
       }
     } catch (error) {
-      Swal.fire({
-        text: error.message,
-        icon: "error",
-        confirmButtonColor: "#3b82f6",
-      });
+      toast.error(error.message);
     }
   };
 
@@ -112,17 +96,14 @@ export default function WaitingArea({ members = [], selectedMembers = [], onTogg
       cancelButtonColor: "#6b7280",
       confirmButtonText: "確定刪除",
       cancelButtonText: "取消",
+      reverseButtons: true,
     });
 
     if (result.isConfirmed) {
       try {
         await deleteCourtMutation.mutateAsync(courtId);
       } catch (error) {
-        Swal.fire({
-          text: "刪除失敗",
-          icon: "error",
-          confirmButtonColor: "#3b82f6",
-        });
+        toast.error("刪除失敗");
       }
     }
   };
@@ -134,11 +115,7 @@ export default function WaitingArea({ members = [], selectedMembers = [], onTogg
         onClearSelection();
       }
     } catch (error) {
-      Swal.fire({
-        text: error.message || "新增隊員失敗",
-        icon: "error",
-        confirmButtonColor: "#3b82f6",
-      });
+      toast.error(error.message || "新增隊員失敗");
     }
   };
 
@@ -146,22 +123,14 @@ export default function WaitingArea({ members = [], selectedMembers = [], onTogg
     try {
       await removeMemberMutation.mutateAsync({ courtId, memberId });
     } catch (error) {
-      Swal.fire({
-        text: "移除隊員失敗",
-        icon: "error",
-        confirmButtonColor: "#3b82f6",
-      });
+      toast.error("移除隊員失敗");
     }
   };
 
   const handleCourtClick = (court) => {
     if (selectedMembers.length > 0) {
       if (court.members.length + selectedMembers.length > 4) {
-        Swal.fire({
-          text: "場地最多只能有4位隊員",
-          icon: "warning",
-          confirmButtonColor: "#3b82f6",
-        });
+        toast.warning("場地最多只能有4位隊員");
         return;
       }
       handleAddMembers(court.id, selectedMembers);
@@ -186,17 +155,13 @@ export default function WaitingArea({ members = [], selectedMembers = [], onTogg
       if (memberData) {
         const member = JSON.parse(memberData);
         if (court.members.length >= 4) {
-          Swal.fire({
-            text: "場地最多只能有4位隊員",
-            icon: "warning",
-            confirmButtonColor: "#3b82f6",
-          });
+          toast.warning("場地最多只能有4位隊員");
           return;
         }
         handleAddMembers(court.id, [member.id]);
       }
     } catch (error) {
-      console.error("拖曳錯誤:", error);
+      toast.error("拖曳錯誤:", error);
     }
   };
 
@@ -384,7 +349,6 @@ export default function WaitingArea({ members = [], selectedMembers = [], onTogg
           </div>
         )}
       </div>
-
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { useState, useMemo } from "react";
 import { useCreateMember, useDeleteMember, useUpdateMember } from "@/hooks/useMembers";
 import { useSettings, useUpdateSetting } from "@/hooks/useSettings";
 import { useClearAllCourts } from "@/hooks/useCourts";
+import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
 export default function Sidebar({ members, onClose, selectedMembers = [], onToggleMember, courtsMembers = [] }) {
@@ -127,9 +128,14 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
         gender: "",
       });
       setShowAddForm(false);
+      toast.success(`✅ 已成功新增會員：${formData.name}`, {
+        position: "top-right",
+      });
     } catch (error) {
       console.error("新增會員錯誤:", error);
-      alert("新增失敗：" + (error?.message || "請稍後再試"));
+      toast.error("❌ 新增失敗：" + (error?.message || "請稍後再試"), {
+        position: "top-right",
+      });
     }
   };
 
@@ -170,8 +176,17 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
   // 處理編輯會員
   const handleEditSubmit = async (e) => {
     e.preventDefault();
-    await updateMemberMutation.mutateAsync(editFormData);
-    setShowEditForm(false);
+    try {
+      await updateMemberMutation.mutateAsync(editFormData);
+      setShowEditForm(false);
+      toast.success(`✅ 已成功更新會員：${editFormData.name}`, {
+        position: "top-right",
+      });
+    } catch (error) {
+      toast.error("❌ 更新失敗：" + (error?.message || "請稍後再試"), {
+        position: "top-right",
+      });
+    }
   };
 
   // 處理設定更新
@@ -183,11 +198,12 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
         setting_value: maxGameCourts.toString(),
       });
       setShowSettingsModal(false);
+      toast.success("✅ 設定已成功更新", {
+        position: "top-right",
+      });
     } catch (error) {
-      Swal.fire({
-        text: "設定更新失敗",
-        icon: "error",
-        confirmButtonColor: "#3b82f6",
+      toast.error("❌ 設定更新失敗", {
+        position: "top-right",
       });
     }
   };
@@ -239,51 +255,34 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
 
   // 處理清除所有場地
   const handleClearAllCourts = async () => {
-    const result = await Swal.fire({
-      title: "⚠️ 危險操作",
-      html: `
-        <p class="text-lg mb-3">確定要清除所有場地資料嗎？</p>
-        <p class="text-sm text-red-600 font-semibold">這將會刪除：</p>
-        <ul class="text-sm text-gray-700 mt-2 text-left ml-8">
-          <li>• 所有比賽區場地</li>
-          <li>• 所有排隊區場地</li>
-          <li>• 所有等待區場地</li>
-          <li>• 場地 ID 將重置為 1</li>
-        </ul>
-        <p class="text-sm text-red-600 font-bold mt-3">此操作無法復原！</p>
-      `,
-      icon: "error",
-      showCancelButton: true,
-      confirmButtonColor: "#ef4444",
-      cancelButtonColor: "#6b7280",
-      confirmButtonText: "確定清除",
-      cancelButtonText: "取消",
-      reverseButtons: true,
-    });
+    const confirmClear = window.confirm(
+      "⚠️ 危險操作 ⚠️\n\n" +
+        "確定要清除所有場地資料嗎？\n\n" +
+        "這將會刪除：\n" +
+        "• 所有比賽區場地\n" +
+        "• 所有排隊區場地\n" +
+        "• 所有等待區場地\n" +
+        "• 場地 ID 將重置為 1\n\n" +
+        "此操作無法復原！"
+    );
 
-    if (result.isConfirmed) {
+    if (confirmClear) {
       try {
         await clearAllCourtsMutation.mutateAsync();
-        Swal.fire({
-          title: "清除成功！",
-          text: "所有場地資料已清除，ID 已重置",
-          icon: "success",
-          confirmButtonColor: "#3b82f6",
-          timer: 2000,
+        toast.success("✅ 所有場地資料已清除，ID 已重置", {
+          position: "top-right",
+          autoClose: 2000,
         });
       } catch (error) {
-        Swal.fire({
-          title: "清除失敗",
-          text: error.message || "無法清除場地資料",
-          icon: "error",
-          confirmButtonColor: "#3b82f6",
+        toast.error(error.message || "❌ 無法清除場地資料", {
+          position: "top-right",
         });
       }
     }
   };
 
   return (
-    <div className="w-screen md:w-80 max-w-full bg-gradient-to-b from-slate-50 to-white border-r border-gray-200 shadow-lg overflow-hidden flex flex-col h-full">
+    <div className="w-screen md:w-80 max-w-full bg-gradient-to-b from-slate-50 to-white border-r border-gray-200 shadow-lg overflow-hidden flex flex-col h-[calc(100vh-4rem)]">
       {/* 側邊欄標題 */}
       <div className="relative bg-gradient-to-r from-[#667eea] to-[#764ba2] text-white p-4 md:p-6 shadow-md flex-shrink-0">
         <div className="min-w-0 flex-1">
