@@ -851,8 +851,8 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
       )}
       {/* 程度表 */}
       {showLevelTable && (
-        <div className="w-screen h-screen fixed top-0 left-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50 animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-xl w-[90%] max-w-xl p-6 border border-gray-200 relative">
+        <div className="w-screen h-screen fixed -top-8 left-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50 animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-xl w-[90%] max-w-xl border border-gray-200 relative">
             <button
               type="button"
               onClick={() => setShowLevelTable(false)}
@@ -860,7 +860,7 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
             >
               <X size={20} />
             </button>
-            <img src="/level-table.webp" alt="程度表" className="w-full h-full" />
+            <img src="/level-table.webp" alt="程度表" className="w-full h-[90vh] object-contain" />
           </div>
         </div>
       )}
