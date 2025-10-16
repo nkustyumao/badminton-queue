@@ -3,11 +3,11 @@
  * 應用程式啟動時自動創建資料表（如果不存在）
  */
 
-const { query } = require('./db.js');
+const { query } = require("./db.js");
 
 async function initDatabase() {
   try {
-    console.log('🔍 檢查資料庫結構...');
+    console.log("🔍 檢查資料庫結構...");
 
     // 1. 創建 member 表
     await query(`
@@ -21,7 +21,6 @@ async function initDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
     `);
-    console.log('✅ member 表已就緒');
 
     // 2. 創建 courts 表
     await query(`
@@ -32,7 +31,6 @@ async function initDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
     `);
-    console.log('✅ courts 表已就緒');
 
     // 3. 創建 court_members 表
     await query(`
@@ -45,7 +43,6 @@ async function initDatabase() {
         FOREIGN KEY (member_id) REFERENCES member(id) ON DELETE CASCADE
       )
     `);
-    console.log('✅ court_members 表已就緒');
 
     // 4. 創建 settings 表
     await query(`
@@ -57,28 +54,21 @@ async function initDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
     `);
-    console.log('✅ settings 表已就緒');
 
     // 5. 插入預設設定（如果不存在）
-    const existingSettings = await query(
-      "SELECT * FROM settings WHERE setting_key = 'max_game_courts'"
-    );
-    
+    const existingSettings = await query("SELECT * FROM settings WHERE setting_key = 'max_game_courts'");
+
     if (existingSettings.length === 0) {
-      await query(
-        "INSERT INTO settings (setting_key, setting_value) VALUES ('max_game_courts', '2')"
-      );
-      console.log('✅ 預設設定已插入');
+      await query("INSERT INTO settings (setting_key, setting_value) VALUES ('max_game_courts', '2')");
     }
 
-    console.log('🎉 資料庫初始化完成！');
-    return true; 
+    console.log("🎉 資料庫初始化完成！");
+    return true;
   } catch (error) {
-    console.error('❌ 資料庫初始化失敗:', error);
+    console.error("❌ 資料庫初始化失敗:", error);
     // 不要拋出錯誤，讓應用程式繼續運行
     return false;
   }
 }
 
 module.exports = { initDatabase };
-

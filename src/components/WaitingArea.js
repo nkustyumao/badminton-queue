@@ -23,7 +23,6 @@ import { toast } from "react-toastify";
 
 export default function WaitingArea({ members = [], selectedMembers = [], onToggleMember, onClearSelection }) {
   const { data: courts = [], isLoading } = useCourts("waiting");
-  console.log(courts);
   const { data: gameCourts = [] } = useCourts("game");
   const { data: queueCourts = [] } = useCourts("queue");
   const { data: settings = {} } = useSettings();

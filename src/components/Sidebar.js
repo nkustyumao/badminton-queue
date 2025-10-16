@@ -13,12 +13,12 @@ import { useSettings, useUpdateSetting } from "@/hooks/useSettings";
 import { useClearAllCourts } from "@/hooks/useCourts";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
+import { useModelState } from "@/store/modelState";
 
 export default function Sidebar({ members, onClose, selectedMembers = [], onToggleMember, courtsMembers = [] }) {
   const [hoveredId, setHoveredId] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
-  const [showLevelTable, setShowLevelTable] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [maxGameCourts, setMaxGameCourts] = useState(2);
   const [editFormData, setEditFormData] = useState({
@@ -304,7 +304,9 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
 
             <div
               className="bg-white/20 p-2 md:p-3 rounded-xl backdrop-blur-sm flex-shrink-0 cursor-pointer"
-              onClick={() => setShowLevelTable(true)}
+              onClick={() => {
+                useModelState.setState({ showLevelTableModel: true });
+              }}
             >
               {/* <Users className="w-5 h-5 md:w-7 md:h-7" /> */}
               程度表
@@ -847,21 +849,6 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
               </button>
             </div>
           </form>
-        </div>
-      )}
-      {/* 程度表 */}
-      {showLevelTable && (
-        <div className="w-screen h-screen fixed -top-8 left-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50 animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-xl w-[90%] max-w-xl border border-gray-200 relative">
-            <button
-              type="button"
-              onClick={() => setShowLevelTable(false)}
-              className="cursor-pointer absolute top-3 right-3 text-gray-500 hover:text-gray-800 transition"
-            >
-              <X size={20} />
-            </button>
-            <img src="/level-table.webp" alt="程度表" className="w-full h-[90vh] object-contain" />
-          </div>
         </div>
       )}
 

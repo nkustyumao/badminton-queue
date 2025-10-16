@@ -16,11 +16,12 @@ import MemberSelectionModal from "@/components/MemberSelectionModal";
 import { useMembers } from "@/hooks/useMembers";
 import { useCourts } from "@/hooks/useCourts";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import LevelTableModel from "@/components/publicModel";
+import { useModelState } from "@/store/modelState";
 
 export default function Home() {
   // 🔥 啟用 WebSocket 實時同步
   useWebSocket();
-
   // 手機版側邊欄開關狀態
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   // 選取的隊員ID列表
@@ -29,6 +30,8 @@ export default function Home() {
   const { data: members = [], isLoading, isError, error } = useMembers();
   // 使用 TanStack Query 獲取場地資料
   const { data: courts = [] } = useCourts();
+  // 程度表開關狀態
+  const showLevelTable = useModelState((state) => state.showLevelTableModel);
 
   // 已在場地中的隊員ID列表
   const courtsMembers = useMemo(() => {
@@ -131,6 +134,8 @@ export default function Home() {
 
       {/* 公用隊員選擇彈窗 */}
       <MemberSelectionModal members={members} />
+      {/* 程度表 */}
+      <LevelTableModel showLevelTableModel={showLevelTable} />
 
       {/* 全局動畫樣式 */}
       <style jsx>{`
