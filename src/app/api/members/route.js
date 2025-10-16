@@ -49,22 +49,11 @@ export async function POST(request) {
     const { name, identity, level, gender } = body;
 
     // 驗證必填欄位
-    if (!name || !identity || !level || !gender) {
+    if (!name || !identity || !gender) {
       return NextResponse.json(
         {
           success: false,
           message: "請填寫所有必填欄位",
-        },
-        { status: 400 }
-      );
-    }
-
-    // 驗證程度範圍
-    if (level < 0 || level > 18) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "程度必須在 0-18 之間",
         },
         { status: 400 }
       );

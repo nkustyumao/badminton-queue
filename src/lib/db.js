@@ -14,8 +14,11 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME,
   port: parseInt(process.env.DB_PORT),
   waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
+  connectionLimit: 50, // 增加連接池大小
+  queueLimit: 100, // 增加隊列限制
+  acquireTimeout: 60000, // 60秒超時
+  timeout: 60000, // 60秒超時
+  reconnect: true, // 自動重連
 });
 
 /**

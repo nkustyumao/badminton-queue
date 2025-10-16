@@ -17,7 +17,7 @@ export async function PUT(request, { params }) {
     const { name, identity, level, gender } = body;
 
     // 驗證必填欄位
-    if (!name || !identity || !level || !gender) {
+    if (!name || !identity || !gender) {
       return NextResponse.json(
         {
           success: false,
@@ -27,22 +27,14 @@ export async function PUT(request, { params }) {
       );
     }
 
-    // 驗證程度範圍
-    if (level < 0 || level > 20) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "程度必須在 0-20 之間",
-        },
-        { status: 400 }
-      );
-    }
-
     // 更新會員資料
-    await query(
-      "UPDATE member SET name = ?, identity = ?, level = ?, gender = ? WHERE id = ?",
-      [name, identity, parseInt(level), gender, id]
-    );
+    await query("UPDATE member SET name = ?, identity = ?, level = ?, gender = ? WHERE id = ?", [
+      name,
+      identity,
+      parseInt(level),
+      gender,
+      id,
+    ]);
 
     return NextResponse.json({
       success: true,
@@ -107,4 +99,3 @@ export async function DELETE(request, { params }) {
     );
   }
 }
-

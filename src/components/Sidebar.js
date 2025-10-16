@@ -425,7 +425,6 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
                   >
                     <option value="">請選擇身份</option>
                     <option value="會員">會員</option>
-                    {/* <option value="隊長">隊長</option> */}
                     <option value="臨打">臨打</option>
                   </select>
                 </div>
@@ -457,12 +456,11 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
                   value={formData.level}
                   onChange={(e) => setFormData({ ...formData, level: e.target.value })}
                   className="w-full px-3 py-2 border text-black rounded-lg text-sm"
-                  required
                 >
-                  <option value="">請選擇級別(可以參考程度表)</option>
-                  <optgroup label="初入茅廬">
+                  <option value="0">未知</option>
+                  {/* <optgroup label="初入茅廬">
                     <option value="0">0級</option>
-                  </optgroup>
+                  </optgroup> */}
                   <optgroup label="快樂級">
                     <option value="1">1級</option>
                     <option value="2">2級</option>
@@ -719,7 +717,7 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
                             程度
                           </span>
                           <span className="text-[10px] md:text-xs font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                            Lv.{member.level}
+                            {member.level === 0 ? "??" : `Lv.${member.level}`}
                           </span>
                         </div>
                       </div>
@@ -792,26 +790,37 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
                   className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-400 outline-none text-black bg-white"
                   required
                 >
-                  <option value="">請選擇程度</option>
-                  <option value="0">0級</option>
-                  <option value="1">1級</option>
-                  <option value="2">2級</option>
-                  <option value="3">3級</option>
-                  <option value="4">4級</option>
-                  <option value="5">5級</option>
-                  <option value="6">6級</option>
-                  <option value="7">7級</option>
-                  <option value="8">8級</option>
-                  <option value="9">9級</option>
-                  <option value="10">10級</option>
-                  <option value="11">11級</option>
-                  <option value="12">12級</option>
-                  <option value="13">13級</option>
-                  <option value="14">14級</option>
-                  <option value="15">15級</option>
-                  <option value="16">16級</option>
-                  <option value="17">17級</option>
-                  <option value="18">18級</option>
+                  <option value="0">未知</option>
+                  <optgroup label="快樂級">
+                    <option value="1">1級</option>
+                    <option value="2">2級</option>
+                    <option value="3">3級</option>
+                  </optgroup>
+                  <optgroup label="大眾級">
+                    <option value="4">4級</option>
+                    <option value="5">5級</option>
+                    <option value="6">6級</option>
+                  </optgroup>
+                  <optgroup label="中級">
+                    <option value="7">7級</option>
+                    <option value="8">8級</option>
+                    <option value="9">9級</option>
+                  </optgroup>
+                  <optgroup label="高級">
+                    <option value="10">10級</option>
+                    <option value="11">11級</option>
+                    <option value="12">12級</option>
+                  </optgroup>
+                  <optgroup label="競技級">
+                    <option value="13">13級</option>
+                    <option value="14">14級</option>
+                    <option value="15">15級</option>
+                  </optgroup>
+                  <optgroup label="專業級">
+                    <option value="16">16級</option>
+                    <option value="17">17級</option>
+                    <option value="18">18級</option>
+                  </optgroup>
                 </select>
               </div>
 

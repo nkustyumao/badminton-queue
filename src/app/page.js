@@ -134,7 +134,8 @@ export default function Home() {
 
       {/* 公用隊員選擇彈窗 */}
       <MemberSelectionModal members={members} />
-      {/* 程度表 */}
+
+      {/* 程度表彈窗 */}
       <LevelTableModel showLevelTableModel={showLevelTable} />
 
       {/* 全局動畫樣式 */}

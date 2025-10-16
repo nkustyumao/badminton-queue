@@ -16,7 +16,13 @@ export default function Header({ isSidebarOpen, onToggleSidebar }) {
   const [isOnline, setIsOnline] = useState(true);
   const [socketConnected, setSocketConnected] = useState(false);
   const [lastEvent, setLastEvent] = useState(null);
+  const [mounted, setMounted] = useState(false);
   const queryClient = useQueryClient();
+
+  // 確保組件已掛載
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // 監聽網路狀態
   useEffect(() => {
@@ -68,14 +74,6 @@ export default function Header({ isSidebarOpen, onToggleSidebar }) {
     setLastUpdate(new Date());
   };
 
-  const formatTime = (date) => {
-    return date.toLocaleTimeString("zh-TW", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-  };
-
   const wsStatus = socketConnected && isOnline;
 
   return (
@@ -117,7 +115,9 @@ export default function Header({ isSidebarOpen, onToggleSidebar }) {
 
             <div className="h-4 w-px bg-gray-300"></div>
 
-            <span className="text-xs text-gray-500 font-medium">{dayjs(lastUpdate).format("A h:mm:ss")}</span>
+            <span className="text-xs text-gray-500 font-medium">
+              {mounted ? dayjs(lastUpdate).format("A h:mm:ss") : "--:--:--"}
+            </span>
 
             <button
               onClick={handleManualRefresh}
@@ -136,7 +136,9 @@ export default function Header({ isSidebarOpen, onToggleSidebar }) {
               <WifiOff className="w-3.5 h-3.5 text-red-500" />
             )}
             <div className={`w-1.5 h-1.5 rounded-full ${wsStatus ? "bg-green-500 animate-pulse" : "bg-red-500"}`}></div>
-            <span className="text-[.8rem] text-gray-500 text-nowrap">{dayjs(lastUpdate).format("A h:mm")}</span>
+            <span className="text-[.8rem] text-gray-500 text-nowrap">
+              {mounted ? dayjs(lastUpdate).format("A h:mm") : "--:--"}
+            </span>
             <button
               onClick={handleManualRefresh}
               className="p-1 hover:bg-gray-200 rounded transition-colors"
