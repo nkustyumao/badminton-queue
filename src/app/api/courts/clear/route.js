@@ -15,12 +15,8 @@ export async function DELETE() {
     // 2. 刪除所有 courts
     await query("DELETE FROM courts");
     
-    // 3. 重置 courts 表的自動遞增 ID
-    await query("ALTER TABLE courts AUTO_INCREMENT = 1");
-    
-    // 4. 重置 court_members 表的自動遞增 ID (如果有的話)
-    // court_members 通常沒有單獨的 ID，但如果有就取消註解
-    // await query("ALTER TABLE court_members AUTO_INCREMENT = 1");
+    // 3. 重置 courts 的 sequence（PostgreSQL）
+    await query("SELECT setval(pg_get_serial_sequence('courts', 'id'), 0)");
     
     // 🔥 廣播 WebSocket 事件
     broadcastUpdate(WS_EVENTS.COURTS_CLEARED, {});

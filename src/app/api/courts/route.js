@@ -1,4 +1,4 @@
-import { query } from "@/lib/db";
+import { query, queryRaw } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { broadcastUpdate, WS_EVENTS } from "@/lib/websocket";
 
@@ -11,7 +11,7 @@ export async function GET(request) {
     let params = [];
     
     if (status && ['waiting', 'game', 'queue'].includes(status)) {
-      sql += " WHERE status = ?";
+      sql += " WHERE status = $1";
       params.push(status);
     }
     
@@ -24,7 +24,7 @@ export async function GET(request) {
         const members = await query(
           `SELECT m.* FROM member m
            INNER JOIN court_members cm ON m.id = cm.member_id
-           WHERE cm.court_id = ?
+           WHERE cm.court_id = $1
            ORDER BY cm.created_at`,
           [court.id]
         );
@@ -54,13 +54,12 @@ export async function POST(request) {
       );
     }
     
-    const result = await query(
-      "INSERT INTO courts (status) VALUES (?)",
+    const result = await queryRaw(
+      "INSERT INTO courts (status) VALUES ($1) RETURNING *",
       [status]
     );
-    const newCourt = await query("SELECT * FROM courts WHERE id = ?", [result.insertId]);
-    
-    const courtData = { ...newCourt[0], members: [] };
+    const newCourt = result.rows[0];
+    const courtData = { ...newCourt, members: [] };
     
     // 🔥 廣播 WebSocket 事件
     broadcastUpdate(WS_EVENTS.COURT_CREATED, { court: courtData });

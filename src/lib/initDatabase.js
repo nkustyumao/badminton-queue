@@ -1,5 +1,5 @@
 /**
- * 資料庫自動初始化腳本
+ * 資料庫自動初始化腳本（PostgreSQL / Supabase）
  * 應用程式啟動時自動創建資料表（如果不存在）
  */
 
@@ -12,46 +12,44 @@ async function initDatabase() {
     // 1. 創建 member 表
     await query(`
       CREATE TABLE IF NOT EXISTS member (
-        id INT PRIMARY KEY AUTO_INCREMENT,
+        id SERIAL PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
-        \`identity\` VARCHAR(50) NOT NULL,
+        identity VARCHAR(50) NOT NULL,
         level INT NOT NULL,
         gender VARCHAR(10) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
       )
     `);
 
     // 2. 創建 courts 表
     await query(`
       CREATE TABLE IF NOT EXISTS courts (
-        id INT PRIMARY KEY AUTO_INCREMENT,
-        status ENUM('waiting', 'game', 'queue') DEFAULT 'waiting',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        id SERIAL PRIMARY KEY,
+        status VARCHAR(20) DEFAULT 'waiting' CHECK (status IN ('waiting', 'game', 'queue')),
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
       )
     `);
 
     // 3. 創建 court_members 表
     await query(`
       CREATE TABLE IF NOT EXISTS court_members (
-        court_id INT NOT NULL,
-        member_id INT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (court_id, member_id),
-        FOREIGN KEY (court_id) REFERENCES courts(id) ON DELETE CASCADE,
-        FOREIGN KEY (member_id) REFERENCES member(id) ON DELETE CASCADE
+        court_id INT NOT NULL REFERENCES courts(id) ON DELETE CASCADE,
+        member_id INT NOT NULL REFERENCES member(id) ON DELETE CASCADE,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        PRIMARY KEY (court_id, member_id)
       )
     `);
 
     // 4. 創建 settings 表
     await query(`
       CREATE TABLE IF NOT EXISTS settings (
-        id INT PRIMARY KEY AUTO_INCREMENT,
+        id SERIAL PRIMARY KEY,
         setting_key VARCHAR(50) UNIQUE NOT NULL,
         setting_value VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
       )
     `);
 
@@ -66,7 +64,6 @@ async function initDatabase() {
     return true;
   } catch (error) {
     console.error("❌ 資料庫初始化失敗:", error);
-    // 不要拋出錯誤，讓應用程式繼續運行
     return false;
   }
 }

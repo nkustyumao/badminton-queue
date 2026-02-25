@@ -15,11 +15,12 @@ export async function POST(request, { params }) {
     }
     
     const currentMembers = await query(
-      "SELECT COUNT(*) as count FROM court_members WHERE court_id = ?",
+      "SELECT COUNT(*) as count FROM court_members WHERE court_id = $1",
       [courtId]
     );
     
-    if (currentMembers[0].count + memberIds.length > 4) {
+    const currentCount = parseInt(currentMembers[0]?.count ?? 0, 10);
+    if (currentCount + memberIds.length > 4) {
       return NextResponse.json(
         { error: "場地最多只能有4位隊員" },
         { status: 400 }
@@ -28,7 +29,7 @@ export async function POST(request, { params }) {
     
     for (const memberId of memberIds) {
       await query(
-        "INSERT INTO court_members (court_id, member_id) VALUES (?, ?)",
+        "INSERT INTO court_members (court_id, member_id) VALUES ($1, $2)",
         [courtId, memberId]
       );
     }
@@ -42,7 +43,7 @@ export async function POST(request, { params }) {
     return NextResponse.json({ message: "新增成功" }, { status: 201 });
   } catch (error) {
     console.error("新增隊員失敗:", error);
-    if (error.code === "ER_DUP_ENTRY") {
+    if (error.code === "23505") {
       return NextResponse.json(
         { error: "隊員已在此場地中" },
         { status: 400 }
@@ -69,7 +70,7 @@ export async function DELETE(request, { params }) {
     }
     
     await query(
-      "DELETE FROM court_members WHERE court_id = ? AND member_id = ?",
+      "DELETE FROM court_members WHERE court_id = $1 AND member_id = $2",
       [courtId, memberId]
     );
     

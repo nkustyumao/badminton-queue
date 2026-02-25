@@ -36,20 +36,18 @@ export async function PUT(request) {
     
     // 檢查設定是否存在
     const existing = await query(
-      "SELECT * FROM settings WHERE setting_key = ?",
+      "SELECT * FROM settings WHERE setting_key = $1",
       [setting_key]
     );
     
     if (existing.length > 0) {
-      // 更新現有設定
       await query(
-        "UPDATE settings SET setting_value = ? WHERE setting_key = ?",
+        "UPDATE settings SET setting_value = $1 WHERE setting_key = $2",
         [setting_value, setting_key]
       );
     } else {
-      // 新增設定
       await query(
-        "INSERT INTO settings (setting_key, setting_value) VALUES (?, ?)",
+        "INSERT INTO settings (setting_key, setting_value) VALUES ($1, $2)",
         [setting_key, setting_value]
       );
     }

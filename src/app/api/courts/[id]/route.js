@@ -5,7 +5,7 @@ import { broadcastUpdate, WS_EVENTS } from "@/lib/websocket";
 export async function DELETE(request, { params }) {
   try {
     const { id } = await params;
-    await query("DELETE FROM courts WHERE id = ?", [id]);
+    await query("DELETE FROM courts WHERE id = $1", [id]);
     
     // 🔥 廣播 WebSocket 事件
     broadcastUpdate(WS_EVENTS.COURT_DELETED, { courtId: id });
@@ -33,11 +33,11 @@ export async function PUT(request, { params }) {
     }
     
     await query(
-      "UPDATE courts SET status = ? WHERE id = ?",
+      "UPDATE courts SET status = $1 WHERE id = $2",
       [status, id]
     );
     
-    const updatedCourt = await query("SELECT * FROM courts WHERE id = ?", [id]);
+    const updatedCourt = await query("SELECT * FROM courts WHERE id = $1", [id]);
     
     if (updatedCourt.length === 0) {
       return NextResponse.json(
@@ -49,7 +49,7 @@ export async function PUT(request, { params }) {
     const members = await query(
       `SELECT m.* FROM member m
        INNER JOIN court_members cm ON m.id = cm.member_id
-       WHERE cm.court_id = ?
+       WHERE cm.court_id = $1
        ORDER BY cm.created_at`,
       [id]
     );

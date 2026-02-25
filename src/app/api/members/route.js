@@ -4,7 +4,7 @@
  * POST /api/members - 新增會員資料
  */
 
-import { query } from "@/lib/db";
+import { query, queryRaw } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { broadcastUpdate, WS_EVENTS } from "@/lib/websocket";
 
@@ -60,15 +60,14 @@ export async function POST(request) {
     }
 
     // 新增會員到資料庫
-    const result = await query("INSERT INTO member (name, identity, level, gender) VALUES (?, ?, ?, ?)", [
-      name,
-      identity,
-      parseInt(level),
-      gender,
-    ]);
+    const result = await queryRaw(
+      "INSERT INTO member (name, identity, level, gender) VALUES ($1, $2, $3, $4) RETURNING id",
+      [name, identity, parseInt(level), gender]
+    );
+    const newId = result.rows[0]?.id;
 
     const newMember = {
-      id: result.insertId,
+      id: newId,
       name,
       identity,
       level: parseInt(level),
@@ -99,7 +98,7 @@ export async function POST(request) {
 export async function DELETE(request) {
   try {
     const { id } = await request.json();
-    await query("DELETE FROM member WHERE id = ?", [id]);
+    await query("DELETE FROM member WHERE id = $1", [id]);
     
     // 🔥 廣播 WebSocket 事件
     broadcastUpdate(WS_EVENTS.MEMBER_DELETED, { memberId: id });
@@ -117,7 +116,7 @@ export async function PUT(request, { params }) {
     const body = await request.json();
     const { name, identity, level, gender } = body;
 
-    await query("UPDATE member SET name = ?, identity = ?, level = ?, gender = ? WHERE id = ?", [
+    await query("UPDATE member SET name = $1, identity = $2, level = $3, gender = $4 WHERE id = $5", [
       name,
       identity,
       level,

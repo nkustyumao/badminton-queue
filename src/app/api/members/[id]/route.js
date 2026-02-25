@@ -28,7 +28,7 @@ export async function PUT(request, { params }) {
     }
 
     // 更新會員資料
-    await query("UPDATE member SET name = ?, identity = ?, level = ?, gender = ? WHERE id = ?", [
+    await query("UPDATE member SET name = $1, identity = $2, level = $3, gender = $4 WHERE id = $5", [
       name,
       identity,
       parseInt(level),
@@ -68,7 +68,7 @@ export async function DELETE(request, { params }) {
     const { id } = await params;
 
     // 檢查會員是否存在
-    const members = await query("SELECT * FROM member WHERE id = ?", [id]);
+    const members = await query("SELECT * FROM member WHERE id = $1", [id]);
 
     if (members.length === 0) {
       return NextResponse.json(
@@ -81,7 +81,7 @@ export async function DELETE(request, { params }) {
     }
 
     // 刪除會員
-    await query("DELETE FROM member WHERE id = ?", [id]);
+    await query("DELETE FROM member WHERE id = $1", [id]);
 
     return NextResponse.json({
       success: true,

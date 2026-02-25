@@ -1,49 +1,36 @@
 /**
- * 資料庫連接測試 API
+ * 資料庫連接測試 API（Supabase / PostgreSQL）
  * 用於檢查資料庫連接是否正常
  */
 
 import { NextResponse } from 'next/server';
-import mysql from 'mysql2/promise';
+import { Pool } from 'pg';
 
 export async function GET() {
-  const dbConfig = {
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 3306,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-  };
-
-  // 檢查環境變數是否存在
   const envCheck = {
-    DB_HOST: process.env.DB_HOST || '未設定',
-    DB_PORT: process.env.DB_PORT || '未設定',
-    DB_USER: process.env.DB_USER || '未設定',
-    DB_PASSWORD: process.env.DB_PASSWORD ? '已設定 (隱藏)' : '未設定',
-    DB_NAME: process.env.DB_NAME || '未設定',
+    DATABASE_URL: process.env.DATABASE_URL ? '已設定 (隱藏)' : '未設定',
   };
 
   try {
-    // 嘗試連接資料庫
-    const connection = await mysql.createConnection(dbConfig);
-    
-    // 測試查詢
-    const [rows] = await connection.execute('SELECT 1 as test');
-    
-    // 檢查 member 表格
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.DATABASE_URL?.includes('supabase.com') ? { rejectUnauthorized: false } : false,
+    });
+
+    await pool.query('SELECT 1 as test');
+
     let memberCount = 0;
     let memberExists = false;
     try {
-      const [members] = await connection.execute('SELECT COUNT(*) as count FROM member');
-      memberCount = members[0].count;
+      const res = await pool.query('SELECT COUNT(*) as count FROM member');
+      memberCount = parseInt(res.rows[0]?.count ?? 0, 10);
       memberExists = true;
-    } catch (err) {
+    } catch {
       memberExists = false;
     }
-    
-    await connection.end();
-    
+
+    await pool.end();
+
     return NextResponse.json({
       success: true,
       message: '✅ 資料庫連接成功！',
@@ -51,8 +38,8 @@ export async function GET() {
       database: {
         connected: true,
         memberTableExists: memberExists,
-        memberCount: memberCount,
-      }
+        memberCount,
+      },
     });
   } catch (error) {
     return NextResponse.json({
@@ -64,12 +51,11 @@ export async function GET() {
         code: error.code,
       },
       suggestions: [
-        '1. 確認 .env.local 檔案是否存在於專案根目錄',
-        '2. 確認資料庫連接資訊是否正確',
-        '3. 確認 MySQL 服務是否已啟動',
-        '4. 建立 .env.local 後需要重新啟動開發伺服器',
-      ]
+        '1. 確認 .env.local 是否有 DATABASE_URL',
+        '2. 到 Supabase Dashboard → Project Settings → Database 複製連線字串',
+        '3. 使用 Transaction 或 Session 模式的 Connection string（含密碼）',
+        '4. 修改 .env.local 後需重新啟動開發伺服器',
+      ],
     }, { status: 500 });
   }
 }
-
