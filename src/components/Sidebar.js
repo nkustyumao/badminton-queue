@@ -7,7 +7,8 @@
 "use client";
 
 import { Users, Award, User, UserPlus, X, Settings, RotateCcw } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { getLevelStyle } from "@/utils/levelUtils";
 import { useCreateMember, useDeleteMember, useUpdateMember } from "@/hooks/useMembers";
 import { useSettings, useUpdateSetting } from "@/hooks/useSettings";
 import { useClearAllCourts } from "@/hooks/useCourts";
@@ -43,8 +44,8 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
   const updateSettingMutation = useUpdateSetting();
   const clearAllCourtsMutation = useClearAllCourts();
 
-  // 當設定載入後更新本地狀態
-  useMemo(() => {
+  // 當設定載入後更新本地狀態（useEffect 才是正確用法，useMemo 不應有 side effects）
+  useEffect(() => {
     if (settings.max_game_courts) {
       setMaxGameCourts(parseInt(settings.max_game_courts));
     }
@@ -67,19 +68,7 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
         };
   };
 
-  /**
-   * 根據程度返回對應的顏色
-   */
-  const getLevelStyle = (level) => {
-    if (level == 18) return { color: "bg-red-300" };
-    if (level >= 16) return { color: "bg-red-100" };
-    if (level >= 13) return { color: "bg-purple-100" };
-    if (level >= 10) return { color: "bg-blue-100" };
-    if (level >= 7) return { color: "bg-yellow-100" };
-    if (level >= 4) return { color: "bg-green-100" };
-    if (level >= 1) return { color: "bg-orange-100" };
-    return { color: "bg-gray-300" };
-  };
+  // getLevelStyle 已移至 @/utils/levelUtils，從 import 取得
 
   /**
    * 排序後的會員列表（過濾掉已在場地中的隊員）
@@ -253,33 +242,7 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
     }
   };
 
-  // 處理清除所有場地
-  const handleClearAllCourts = async () => {
-    const confirmClear = window.confirm(
-      "⚠️ 危險操作 ⚠️\n\n" +
-        "確定要清除所有場地資料嗎？\n\n" +
-        "這將會刪除：\n" +
-        "• 所有比賽區場地\n" +
-        "• 所有排隊區場地\n" +
-        "• 所有等待區場地\n" +
-        "• 場地 ID 將重置為 1\n\n" +
-        "此操作無法復原！"
-    );
-
-    if (confirmClear) {
-      try {
-        await clearAllCourtsMutation.mutateAsync();
-        toast.success("✅ 所有場地資料已清除，ID 已重置", {
-          position: "top-right",
-          autoClose: 2000,
-        });
-      } catch (error) {
-        toast.error(error.message || "❌ 無法清除場地資料", {
-          position: "top-right",
-        });
-      }
-    }
-  };
+  // handleClearAllCourts 已刪除（殭屍函數，功能已被 handleReset 取代）
 
   return (
     <div className="w-screen md:w-80 max-w-full bg-gradient-to-b from-slate-50 to-white border-r border-gray-200 shadow-lg overflow-hidden flex flex-col h-[calc(100vh-4rem)]">
@@ -378,17 +341,6 @@ export default function Sidebar({ members, onClose, selectedMembers = [], onTogg
             程度高到低
           </button>
         </div>
-
-        {/* 清除場地按鈕 */}
-        {/* <button
-          onClick={handleClearAllCourts}
-          disabled={clearAllCourtsMutation.isPending}
-          className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-4 py-2.5 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all duration-300 shadow-md hover:shadow-lg active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          title="清除所有場地資料"
-        >
-          <Trash2 className="w-5 h-5" />
-          <span>{clearAllCourtsMutation.isPending ? "清除中..." : "清除所有場地"}</span>
-        </button> */}
       </div>
 
       {/* 新增隊員表單 */}

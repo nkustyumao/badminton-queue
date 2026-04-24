@@ -10,17 +10,8 @@ import { TiDelete } from "react-icons/ti";
 import { useMemberModalStore } from "@/store/useMemberModalStore";
 import { toast } from "react-toastify";
 
-// 根據等級獲取樣式
-const getLevelStyle = (level) => {
-  if (level == 18) return { color: "bg-red-300" };
-  if (level >= 16) return { color: "bg-red-100" };
-  if (level >= 13) return { color: "bg-purple-100" };
-  if (level >= 10) return { color: "bg-blue-100" };
-  if (level >= 7) return { color: "bg-yellow-100" };
-  if (level >= 4) return { color: "bg-green-100" };
-  if (level >= 1) return { color: "bg-orange-100" };
-  return { color: "bg-gray-300" };
-};
+import { getLevelStyle } from "@/utils/levelUtils";
+
 
 export default function MemberSelectionModal({ members = [] }) {
   const { isOpen, selectedCourt, selectedMemberIds, toggleMember, closeModal, confirmSelection } =

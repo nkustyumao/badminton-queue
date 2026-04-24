@@ -14,6 +14,7 @@ import {
   useRemoveMemberFromCourt,
 } from "@/hooks/useCourts";
 import { useState } from "react";
+import { getLevelStyle, calculateTotalLevel } from "@/utils/levelUtils";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 import { useSettings } from "@/hooks/useSettings";
@@ -135,20 +136,7 @@ export default function GameArea({ members = [] }) {
     }
   };
 
-  const calculateTotalLevel = (members) => {
-    return members.reduce((sum, member) => sum + parseInt(member.level || 0), 0);
-  };
-
-  const getLevelStyle = (level) => {
-    if (level == 18) return { color: "bg-red-300" };
-    if (level >= 16) return { color: "bg-red-100" };
-    if (level >= 13) return { color: "bg-purple-100" };
-    if (level >= 10) return { color: "bg-blue-100" };
-    if (level >= 7) return { color: "bg-yellow-100" };
-    if (level >= 4) return { color: "bg-green-100" };
-    if (level >= 1) return { color: "bg-orange-100" };
-    return { color: "bg-gray-300" };
-  };
+  // getLevelStyle 和 calculateTotalLevel 已移至 @/utils/levelUtils，從 import 取得
 
   // 獲取可用的隊員
   // 打開隊員選擇彈窗（使用 Zustand store）
